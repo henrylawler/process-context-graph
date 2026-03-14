@@ -3,51 +3,97 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Process Context Graph — LeveeTech</title>
+<title>PCG-UX · Process Context Graph</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,500;7..72,600&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:wght@600;700;800&display=swap');
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   :root {
-    /* LeveeTech Terrain Palette */
-    --lt-terracotta: #B85C38;
-    --lt-sage: #6B7F5E;
-    --lt-tidal: #5A7D8A;
-    --lt-sand: #C9B896;
-    --lt-charcoal: #2C2C2C;
-    --lt-deep: #1A1816;
-    --lt-desert: #D4A96A;
-    --lt-forest: #3A4F3A;
-    --lt-ocean: #2B3E50;
-    --lt-coral: #C17C60;
-    --lt-patina: #5E8B7E;
-    --lt-driftwood: #7A6B5D;
-    --lt-lichen: #8A9A7B;
-    --lt-parchment: #F4EDE0;
-    --lt-paper: #FAF7F0;
-    --lt-bone: #E8E0D0;
-    --lt-ash: #9A9590;
-    --lt-ink: #2A2520;
-    --hank-oxbow: #5C4033;
-    --hank-levee: #4A5D23;
-    --hank-channel: #2B4257;
-    --hank-sandbar: #C4A77D;
-    --hank-juke: #B34233;
+    /* ─── Palette: Terrain (default) ─── */
+    --p-l1: #5A7D8A; --p-l2: #6B7F5E; --p-l3: #B85C38;
+    --p-l4: #D4A96A; --p-l5: #C4A77D; --p-l6: #9A9590;
+    --p-paper: #FAF7F0; --p-parchment: #F4EDE0; --p-bone: #E8E0D0;
+    --p-ink: #2A2520; --p-ash: #9A9590; --p-driftwood: #7A6B5D;
+    --p-deep: #1A1816; --p-sand: #C9B896;
+    --p-accent1: #5E8B7E; --p-accent2: #C17C60; --p-accent3: #B34233;
+
+    /* Full LeveeTech aliases (for backwards compat) */
+    --lt-terracotta: #B85C38; --lt-sage: #6B7F5E; --lt-tidal: #5A7D8A;
+    --lt-sand: #C9B896; --lt-charcoal: #2C2C2C; --lt-deep: #1A1816;
+    --lt-desert: #D4A96A; --lt-forest: #3A4F3A; --lt-ocean: #2B3E50;
+    --lt-coral: #C17C60; --lt-patina: #5E8B7E; --lt-driftwood: #7A6B5D;
+    --lt-lichen: #8A9A7B; --lt-parchment: #F4EDE0; --lt-paper: #FAF7F0;
+    --lt-bone: #E8E0D0; --lt-ash: #9A9590; --lt-ink: #2A2520;
+    --hank-oxbow: #5C4033; --hank-levee: #4A5D23; --hank-channel: #2B4257;
+    --hank-sandbar: #C4A77D; --hank-juke: #B34233;
+
+    /* ─── Theme-aware variables (light default) ─── */
+    --bg: var(--p-paper); --bg-surface: var(--p-parchment);
+    --text-primary: var(--p-ink); --text-secondary: var(--p-ash);
+    --text-muted: var(--p-driftwood); --border: var(--p-bone);
+    --panel-bg: var(--p-paper); --shadow-alpha: 0.15;
+    --grain-blend: multiply; --grain-opacity: 0.25;
+    --node-outline: rgba(42,37,32,0.45); --label-halo: var(--p-parchment);
+    --halftone-alpha: 0.22; --shadow-dot: rgba(42,37,32,VAR);
+  }
+
+  /* ─── Palette: Estuary ─── */
+  body[data-palette="estuary"] {
+    --p-l1: #2C3E50; --p-l2: #3D6B6B; --p-l3: #C07840;
+    --p-l4: #B8A088; --p-l5: #A0A8A8; --p-l6: #8A8A82;
+    --p-paper: #F5F3EE; --p-parchment: #EDE9E2; --p-bone: #DDD8CE;
+    --p-ink: #1E2832; --p-ash: #8A9098; --p-driftwood: #6A7478;
+    --p-deep: #1B2028; --p-sand: #B8B0A0;
+    --p-accent1: #3D8B7B; --p-accent2: #C07840; --p-accent3: #8B3A3A;
+  }
+
+  /* ─── Palette: Ridgeline ─── */
+  body[data-palette="ridgeline"] {
+    --p-l1: #4A4458; --p-l2: #5E7060; --p-l3: #A85A3A;
+    --p-l4: #C8AD7A; --p-l5: #B09880; --p-l6: #908882;
+    --p-paper: #F6F2EC; --p-parchment: #EDE8E0; --p-bone: #E0D8CC;
+    --p-ink: #2A2430; --p-ash: #8A8488; --p-driftwood: #6A6468;
+    --p-deep: #1A1820; --p-sand: #C0B8A8;
+    --p-accent1: #5E7860; --p-accent2: #C07850; --p-accent3: #8A3A40;
+  }
+
+  /* ─── Dark Theme ─── */
+  body.theme-dark {
+    --bg: var(--p-deep); --bg-surface: #1E1B18;
+    --text-primary: var(--p-sand); --text-secondary: rgba(201,184,150,0.5);
+    --text-muted: rgba(201,184,150,0.35); --border: rgba(201,184,150,0.12);
+    --panel-bg: #1E1B18; --shadow-alpha: 0.3;
+    --grain-blend: screen; --grain-opacity: 0.15;
+    --node-outline: rgba(201,184,150,0.45); --label-halo: var(--p-deep);
+    --halftone-alpha: 0.16; --shadow-dot: rgba(0,0,0,VAR);
+  }
+  body.theme-dark[data-palette="estuary"] {
+    --bg: #1B2028; --bg-surface: #1E2228;
+    --text-primary: #B8B0A0; --text-secondary: rgba(184,176,160,0.5);
+    --label-halo: #1B2028;
+  }
+  body.theme-dark[data-palette="ridgeline"] {
+    --bg: #1A1820; --bg-surface: #1E1C22;
+    --text-primary: #C0B8A8; --text-secondary: rgba(192,184,168,0.5);
+    --label-halo: #1A1820;
   }
 
   html, body {
     width: 100%; height: 100%;
     overflow: hidden;
     font-family: 'Literata', serif;
-    background: var(--lt-paper);
+    background: var(--bg);
+    color: var(--text-primary);
+    transition: background 0.3s, color 0.3s;
   }
 
   /* ─── Canvas surface ─── */
   .surface {
     position: absolute;
     inset: 0;
-    background: var(--lt-paper);
+    background: var(--bg);
+    transition: background 0.3s;
   }
 
   /* Paper fiber texture */
@@ -68,8 +114,9 @@
     inset: 0;
     pointer-events: none;
     z-index: 2;
-    opacity: 0.25;
-    mix-blend-mode: multiply;
+    opacity: var(--grain-opacity);
+    mix-blend-mode: var(--grain-blend);
+    transition: opacity 0.3s;
   }
   .grain svg { width: 100%; height: 100%; }
 
@@ -104,7 +151,7 @@
     font-size: 16px;
     font-weight: 700;
     letter-spacing: -0.3px;
-    color: var(--lt-ink);
+    color: var(--text-primary);
   }
   .hdr .tag {
     font-family: 'JetBrains Mono', monospace;
@@ -113,8 +160,8 @@
     letter-spacing: 0.8px;
     padding: 2px 7px;
     border-radius: 2px;
-    color: var(--lt-ash);
-    background: rgba(42,37,32,0.05);
+    color: var(--text-secondary);
+    background: rgba(128,128,128,0.08);
   }
 
   /* Controls */
@@ -127,9 +174,10 @@
     gap: 2px;
     padding: 3px;
     border-radius: 5px;
-    background: rgba(42,37,32,0.04);
-    border: 1px solid var(--lt-bone);
+    background: rgba(128,128,128,0.06);
+    border: 1px solid var(--border);
     backdrop-filter: blur(10px);
+    transition: background 0.3s, border-color 0.3s;
   }
 
   .c-btn {
@@ -140,16 +188,16 @@
     border: none;
     border-radius: 3px;
     background: transparent;
-    color: var(--lt-ash);
+    color: var(--text-secondary);
     cursor: pointer;
     transition: all 0.2s;
     letter-spacing: 0.3px;
   }
-  .c-btn:hover { color: var(--lt-ink); }
+  .c-btn:hover { color: var(--text-primary); }
   .c-btn.active {
-    color: var(--lt-ink);
-    background: var(--lt-paper);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    color: var(--text-primary);
+    background: var(--panel-bg);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   }
 
   .toggles {
@@ -165,16 +213,16 @@
     font-size: 8.5px;
     font-weight: 500;
     padding: 2px 8px;
-    border: 1px solid var(--lt-bone);
+    border: 1px solid var(--border);
     border-radius: 2px;
     background: transparent;
-    color: var(--lt-ash);
+    color: var(--text-secondary);
     cursor: pointer;
     transition: all 0.15s;
     letter-spacing: 0.3px;
   }
-  .t-btn:hover { border-color: var(--lt-driftwood); }
-  .t-btn.on { border-color: var(--lt-terracotta); color: var(--lt-terracotta); }
+  .t-btn:hover { border-color: var(--text-muted); }
+  .t-btn.on { border-color: var(--p-l3); color: var(--p-l3); }
 
   /* Info panel */
   .info {
@@ -183,10 +231,10 @@
     left: 50%;
     transform: translateX(-50%) translateY(8px);
     width: 340px;
-    background: var(--lt-paper);
-    border: 1px solid var(--lt-bone);
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
     border-radius: 6px;
-    box-shadow: 0 6px 24px rgba(26,24,22,0.1), 0 2px 6px rgba(26,24,22,0.05);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.06);
     font-size: 11px;
     opacity: 0;
     transition: all 0.2s ease;
@@ -453,6 +501,127 @@
     background: rgba(184,92,56,0.08);
   }
 
+  /* ─── Palette Picker ─── */
+  .palette-picker {
+    position: absolute;
+    top: 16px;
+    right: 260px;
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    z-index: 60;
+  }
+  .palette-swatch {
+    width: 18px; height: 18px;
+    border-radius: 3px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+  .palette-swatch:hover { transform: scale(1.15); }
+  .palette-swatch.active { border-color: var(--text-primary); }
+  .palette-swatch[data-pal="terrain"] { background: linear-gradient(135deg, #5A7D8A 30%, #B85C38 70%); }
+  .palette-swatch[data-pal="estuary"] { background: linear-gradient(135deg, #2C3E50 30%, #C07840 70%); }
+  .palette-swatch[data-pal="ridgeline"] { background: linear-gradient(135deg, #4A4458 30%, #A85A3A 70%); }
+  .palette-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7.5px;
+    color: var(--text-secondary);
+    letter-spacing: 0.3px;
+    margin-right: 4px;
+  }
+
+  /* ─── Shape Mode Indicator ─── */
+  .shape-mode-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7.5px;
+    color: var(--text-secondary);
+    letter-spacing: 0.3px;
+  }
+
+  /* ─── Leader Line Callouts ─── */
+  .leader-callout {
+    position: fixed;
+    z-index: 45;
+    pointer-events: auto;
+    transition: opacity 0.2s;
+  }
+  .leader-card {
+    width: 200px;
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .leader-card:hover { border-color: var(--text-muted); }
+  .leader-card-stripe {
+    height: 3px;
+    width: 100%;
+  }
+  .leader-card-body {
+    padding: 8px 10px;
+  }
+  .leader-card-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 3px;
+  }
+  .leader-card-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    color: var(--text-secondary);
+    margin-bottom: 3px;
+    display: flex;
+    gap: 8px;
+  }
+  .leader-card-notes {
+    font-family: 'Literata', serif;
+    font-size: 9.5px;
+    font-style: italic;
+    color: var(--text-muted);
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .leader-card-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7px;
+    color: var(--text-secondary);
+    margin-top: 3px;
+    display: flex;
+    gap: 6px;
+  }
+
+  /* ─── Data Source Switcher ─── */
+  .data-switcher {
+    position: absolute;
+    top: 72px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+  .data-switcher select {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8.5px;
+    padding: 2px 6px;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    background: var(--panel-bg);
+    color: var(--text-primary);
+    cursor: pointer;
+    outline: none;
+  }
+
   /* ─── Agent Drawer ─── */
   .agent-toggle {
     position: fixed;
@@ -463,19 +632,19 @@
     align-items: center;
     gap: 6px;
     padding: 5px 12px;
-    border: 1px solid var(--lt-bone);
+    border: 1px solid var(--border);
     border-radius: 4px;
-    background: var(--lt-paper);
+    background: var(--panel-bg);
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
     font-weight: 500;
-    color: var(--lt-ink);
+    color: var(--text-primary);
     cursor: pointer;
     transition: all 0.15s;
-    box-shadow: 0 1px 4px rgba(26,24,22,0.06);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
   }
-  .agent-toggle:hover { border-color: var(--lt-terracotta); color: var(--lt-terracotta); }
-  .agent-toggle.open { background: var(--lt-terracotta); color: #fff; border-color: var(--lt-terracotta); }
+  .agent-toggle:hover { border-color: var(--p-l3); color: var(--p-l3); }
+  .agent-toggle.open { background: var(--p-l3); color: #fff; border-color: var(--p-l3); }
   .agent-toggle svg { width: 14px; height: 14px; fill: currentColor; }
 
   .agent-drawer {
@@ -483,9 +652,9 @@
     top: 0; right: 0;
     width: 380px;
     height: 100%;
-    background: var(--lt-paper);
-    border-left: 1px solid var(--lt-bone);
-    box-shadow: -8px 0 32px rgba(26,24,22,0.08);
+    background: var(--panel-bg);
+    border-left: 1px solid var(--border);
+    box-shadow: -8px 0 32px rgba(0,0,0,0.1);
     z-index: 58;
     display: flex;
     flex-direction: column;
@@ -1010,8 +1179,8 @@
 
 <div class="ui-layer">
   <div class="hdr">
-    <h1>Process Context</h1>
-    <span class="tag">process graph · v1.0</span>
+    <h1>PCG-UX</h1>
+    <span class="tag">process context graph · style plugin · v2.0</span>
   </div>
 
   <div class="controls">
@@ -1025,9 +1194,18 @@
     <button class="t-btn on" id="tHalf" onclick="togHalf()">halftone</button>
     <button class="t-btn on" id="tDepth" onclick="togDepth()">depth</button>
     <button class="t-btn" id="tLabels" onclick="togLabels()">labels</button>
+    <button class="t-btn" id="tShapes" onclick="togShapeMode()">shapes</button>
+    <button class="t-btn" id="tTheme" onclick="togTheme()">dark</button>
   </div>
 
-  <div class="keys">1-4 views · H halftone · Z depth · L labels · R reset · / agent · Q queue · click node · esc close</div>
+  <div class="data-switcher">
+    <select id="dataSource" onchange="switchDataSource(this.value)">
+      <option value="example">OpenClaw Example</option>
+      <option value="placeholder">Generic Placeholder</option>
+    </select>
+  </div>
+
+  <div class="keys">1-4 views · H halftone · Z depth · L labels · S shapes · D dark · P palette · R reset · / agent · Q queue</div>
 
   <div class="edge-legend">
     <div class="elg"><div class="elg-line" style="border-color:#C9B896"></div>hierarchy</div>
@@ -1047,6 +1225,17 @@
 
   <div class="info" id="info"></div>
 </div>
+
+<!-- Palette Picker -->
+<div class="palette-picker">
+  <span class="palette-label">palette</span>
+  <div class="palette-swatch active" data-pal="terrain" onclick="setPalette('terrain')"></div>
+  <div class="palette-swatch" data-pal="estuary" onclick="setPalette('estuary')"></div>
+  <div class="palette-swatch" data-pal="ridgeline" onclick="setPalette('ridgeline')"></div>
+</div>
+
+<!-- Leader line callout container -->
+<div id="leaderContainer" style="position:fixed;inset:0;z-index:44;pointer-events:none;"></div>
 
 <!-- Review Queue toggle -->
 <button class="review-queue-toggle" id="rqToggle" onclick="toggleReviewQueue()">
@@ -1150,18 +1339,18 @@ const LT = {
   sandbar: '#C4A77D', juke: '#B34233'
 };
 
-// ─── Level config — all circles, sized by depth ───
-const LEVEL_COLOR = {
-  project: LT.tidal,
-  board_owner: LT.sage,
-  feature: LT.terracotta,
-  task: LT.desert,
-  subtask: LT.sandbar,
-  action: LT.ash,
-  sync: LT.patina,
-  lane_header: LT.driftwood,
-  work_item: LT.tidal
-};
+// ─── Level config — sized by depth, color from active palette ───
+// LEVEL_COLOR is now dynamic — use getLevelColor(level) instead
+// Legacy compat: this object is rebuilt on palette change
+let LEVEL_COLOR = {};
+function rebuildLevelColors() {
+  const p = getPalette();
+  LEVEL_COLOR = {
+    project: p.l1, board_owner: p.l2, feature: p.l3,
+    task: p.l4, subtask: p.l5, action: p.l6,
+    sync: p.accent1, lane_header: p.driftwood, work_item: p.l1
+  };
+}
 
 const LEVEL_SIZE = {
   project: 42,
@@ -1181,8 +1370,8 @@ const LEVEL_SHADOW = {
   sync: 6, lane_header: 3, work_item: 2.5
 };
 
-// ─── Domain Data — 6 hierarchy levels ───
-const nodeData = [
+// ─── Example Data: OpenClaw — 6 hierarchy levels ───
+const EXAMPLE_NODES = [
   // L1 — Project
   { id: 'n_root', label: 'OpenClaw', level: 'project', owner: 'Hank', fn: 'Platform', parent: null,
     notes: 'Root orchestration platform. Three-pillar arch: Hank (Mac Mini), Jerry (MacBook Pro), Claude Code.' },
@@ -1258,7 +1447,7 @@ const nodeData = [
     notes: 'Strong params + level/parent consistency check.' },
 ];
 
-const depEdges = [
+const EXAMPLE_DEPS = [
   { src: 'n_fwb', tgt: 'n_fgr', kind: 'depends_on' },
   { src: 'n_fsy', tgt: 'n_fap', kind: 'depends_on' },
   { src: 'n_thier', tgt: 'n_tcam', kind: 'blocks' },
@@ -1269,7 +1458,7 @@ const depEdges = [
   { src: 'n_tdith', tgt: 'n_tlay', kind: 'depends_on' },
 ];
 
-const workItems = [
+const EXAMPLE_WORKITEMS = [
   { id: 'w1', node: 'n_tcam', title: 'Tune camera depth', status: 'doing', who: 'Henry' },
   { id: 'w2', node: 'n_tcam', title: 'FOV slider', status: 'next_up', who: 'Henry' },
   { id: 'w3', node: 'n_thier', title: 'Expand/collapse', status: 'backlog', who: 'Henry' },
@@ -1285,7 +1474,7 @@ const workItems = [
   { id: 'w13', node: 'n_tmig', title: 'Run initial migration', status: 'done', who: 'Hank' },
 ];
 
-const syncFlowData = [
+const EXAMPLE_SYNC = [
   { from: 'Obsidian Vault', to: 'Frontmatter Parser', label: 'metadata' },
   { from: 'Frontmatter Parser', to: 'Rails DB', label: 'vault→db' },
   { from: 'Rails DB', to: 'Block Writer', label: 'db→vault' },
@@ -1295,6 +1484,381 @@ const syncFlowData = [
   { from: 'Workbench UI', to: 'Rails API', label: 'mutations' },
   { from: 'Rails API', to: 'Rails DB', label: 'persist' },
 ];
+
+// ─── Palette System ───
+const PALETTES = {
+  terrain: {
+    name: 'Terrain', l1: '#5A7D8A', l2: '#6B7F5E', l3: '#B85C38',
+    l4: '#D4A96A', l5: '#C4A77D', l6: '#9A9590',
+    paper: '#FAF7F0', parchment: '#F4EDE0', bone: '#E8E0D0',
+    ink: '#2A2520', ash: '#9A9590', driftwood: '#7A6B5D',
+    deep: '#1A1816', sand: '#C9B896',
+    accent1: '#5E8B7E', accent2: '#C17C60', accent3: '#B34233'
+  },
+  estuary: {
+    name: 'Estuary', l1: '#2C3E50', l2: '#3D6B6B', l3: '#C07840',
+    l4: '#B8A088', l5: '#A0A8A8', l6: '#8A8A82',
+    paper: '#F5F3EE', parchment: '#EDE9E2', bone: '#DDD8CE',
+    ink: '#1E2832', ash: '#8A9098', driftwood: '#6A7478',
+    deep: '#1B2028', sand: '#B8B0A0',
+    accent1: '#3D8B7B', accent2: '#C07840', accent3: '#8B3A3A'
+  },
+  ridgeline: {
+    name: 'Ridgeline', l1: '#4A4458', l2: '#5E7060', l3: '#A85A3A',
+    l4: '#C8AD7A', l5: '#B09880', l6: '#908882',
+    paper: '#F6F2EC', parchment: '#EDE8E0', bone: '#E0D8CC',
+    ink: '#2A2430', ash: '#8A8488', driftwood: '#6A6468',
+    deep: '#1A1820', sand: '#C0B8A8',
+    accent1: '#5E7860', accent2: '#C07850', accent3: '#8A3A40'
+  }
+};
+
+let currentPalette = localStorage.getItem('pcg_palette') || 'terrain';
+let isDarkTheme = localStorage.getItem('pcg_theme') === 'dark';
+let shapeMode = 'process'; // 'process' (circles) or 'systems' (mixed shapes)
+
+function getPalette() { return PALETTES[currentPalette]; }
+
+function getLevelColor(level) {
+  const p = getPalette();
+  const map = { project: p.l1, board_owner: p.l2, feature: p.l3, task: p.l4,
+    subtask: p.l5, action: p.l6, sync: p.accent1, lane_header: p.driftwood, work_item: p.l1 };
+  return map[level] || p.l1;
+}
+
+// ─── Shape Library ───
+const SHAPE_LIBRARY = {
+  circle(ctx, x, y, size) {
+    ctx.beginPath(); ctx.arc(x, y, size, 0, Math.PI * 2);
+  },
+  roundedRect(ctx, x, y, size) {
+    const w = size * 2.2, h = size * 1.5, r = size * 0.3;
+    const lx = x - w/2, ly = y - h/2;
+    ctx.beginPath();
+    ctx.moveTo(lx + r, ly);
+    ctx.lineTo(lx + w - r, ly); ctx.quadraticCurveTo(lx + w, ly, lx + w, ly + r);
+    ctx.lineTo(lx + w, ly + h - r); ctx.quadraticCurveTo(lx + w, ly + h, lx + w - r, ly + h);
+    ctx.lineTo(lx + r, ly + h); ctx.quadraticCurveTo(lx, ly + h, lx, ly + h - r);
+    ctx.lineTo(lx, ly + r); ctx.quadraticCurveTo(lx, ly, lx + r, ly);
+    ctx.closePath();
+  },
+  diamond(ctx, x, y, size) {
+    const s = size * 1.2;
+    ctx.beginPath();
+    ctx.moveTo(x, y - s); ctx.lineTo(x + s, y);
+    ctx.lineTo(x, y + s); ctx.lineTo(x - s, y); ctx.closePath();
+  },
+  hexagon(ctx, x, y, size) {
+    ctx.beginPath();
+    for (let i = 0; i < 6; i++) {
+      const a = (Math.PI / 3) * i - Math.PI / 6;
+      const px = x + size * Math.cos(a), py = y + size * Math.sin(a);
+      i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+  },
+  octagon(ctx, x, y, size) {
+    ctx.beginPath();
+    for (let i = 0; i < 8; i++) {
+      const a = (Math.PI / 4) * i - Math.PI / 8;
+      const px = x + size * Math.cos(a), py = y + size * Math.sin(a);
+      i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+  },
+  pill(ctx, x, y, size) {
+    const w = size * 2.4, h = size * 1.2, r = h / 2;
+    const lx = x - w/2, ly = y - h/2;
+    ctx.beginPath();
+    ctx.moveTo(lx + r, ly);
+    ctx.lineTo(lx + w - r, ly); ctx.arc(lx + w - r, ly + r, r, -Math.PI/2, Math.PI/2);
+    ctx.lineTo(lx + r, ly + h); ctx.arc(lx + r, ly + r, r, Math.PI/2, -Math.PI/2);
+    ctx.closePath();
+  },
+  triangle(ctx, x, y, size) {
+    const s = size * 1.15;
+    ctx.beginPath();
+    ctx.moveTo(x, y - s);
+    ctx.lineTo(x + s * 0.866, y + s * 0.5);
+    ctx.lineTo(x - s * 0.866, y + s * 0.5);
+    ctx.closePath();
+  },
+  pentagon(ctx, x, y, size) {
+    ctx.beginPath();
+    for (let i = 0; i < 5; i++) {
+      const a = (Math.PI * 2 / 5) * i - Math.PI / 2;
+      const px = x + size * Math.cos(a), py = y + size * Math.sin(a);
+      i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+  }
+};
+
+// Default shape assignments for systems diagram mode
+const SYSTEMS_SHAPES = {
+  project: 'hexagon', board_owner: 'roundedRect', feature: 'diamond',
+  task: 'circle', subtask: 'pentagon', action: 'triangle',
+  sync: 'pill', lane_header: 'octagon', work_item: 'circle'
+};
+
+function getNodeShape(level, nodeShape) {
+  if (shapeMode === 'process') return 'circle';
+  return nodeShape || SYSTEMS_SHAPES[level] || 'circle';
+}
+
+// ─── Leader Lines (Hockey Stick Callouts) ───
+let activeLeaderLines = new Map(); // nodeId → { element, lineCanvas }
+
+function createLeaderLine(nodeId) {
+  if (activeLeaderLines.has(nodeId)) {
+    removeLeaderLine(nodeId);
+    return;
+  }
+  const nd = nodeData.find(n => n.id === nodeId);
+  if (!nd) return;
+  const attrs = graph?.getNodeAttributes(nodeId);
+  if (!attrs) return;
+
+  // Get screen position from sigma
+  const viewportPos = sigmaInstance.graphToViewport({ x: attrs.x, y: attrs.y });
+  const p = getPalette();
+  const levelColor = getLevelColor(nd.level);
+
+  // Determine callout direction (prefer right, offset by existing callouts)
+  const existingCount = activeLeaderLines.size;
+  const direction = existingCount % 2 === 0 ? 1 : -1; // alternate left/right
+  const verticalOffset = Math.floor(existingCount / 2) * 70;
+
+  const hLen = 40 + Math.random() * 20; // horizontal segment length
+  const vLen = 30 + verticalOffset; // vertical segment length
+
+  // Create callout card element
+  const container = document.createElement('div');
+  container.className = 'leader-callout';
+  container.dataset.nodeId = nodeId;
+  container.style.pointerEvents = 'auto';
+
+  const wis = workItems.filter(w => w.node === nodeId);
+  const deps = depEdges.filter(d => d.src === nodeId || d.tgt === nodeId);
+
+  container.innerHTML = `
+    <div class="leader-card" onclick="removeLeaderLine('${nodeId}')">
+      <div class="leader-card-stripe" style="background:${levelColor}"></div>
+      <div class="leader-card-body">
+        <div class="leader-card-label">${nd.label}</div>
+        <div class="leader-card-meta">
+          <span>${nd.level.replace('_',' ')}</span>
+          ${nd.owner ? `<span>${nd.owner}</span>` : ''}
+          ${nd.fn ? `<span>${nd.fn}</span>` : ''}
+        </div>
+        ${nd.notes ? `<div class="leader-card-notes">${nd.notes}</div>` : ''}
+        <div class="leader-card-badge">
+          ${wis.length ? `<span>${wis.length} work items</span>` : ''}
+          ${deps.length ? `<span>${deps.length} deps</span>` : ''}
+          ${nd.due ? `<span>due ${nd.due}</span>` : ''}
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('leaderContainer').appendChild(container);
+
+  activeLeaderLines.set(nodeId, {
+    element: container,
+    direction, hLen, vLen
+  });
+
+  updateLeaderPositions();
+}
+
+function removeLeaderLine(nodeId) {
+  const entry = activeLeaderLines.get(nodeId);
+  if (entry) {
+    entry.element.remove();
+    activeLeaderLines.delete(nodeId);
+    drawLeaderLineSVG();
+  }
+}
+window.removeLeaderLine = removeLeaderLine;
+
+function clearAllLeaderLines() {
+  activeLeaderLines.forEach((entry) => entry.element.remove());
+  activeLeaderLines.clear();
+  drawLeaderLineSVG();
+}
+
+function updateLeaderPositions() {
+  if (!sigmaInstance || !graph) return;
+
+  activeLeaderLines.forEach((entry, nodeId) => {
+    if (!graph.hasNode(nodeId)) { removeLeaderLine(nodeId); return; }
+    const attrs = graph.getNodeAttributes(nodeId);
+    const vp = sigmaInstance.graphToViewport({ x: attrs.x, y: attrs.y });
+    const nodeScreenSize = attrs.size * sigmaInstance.getCamera().ratio || 10;
+
+    const dir = entry.direction;
+    const startX = vp.x + (dir > 0 ? nodeScreenSize + 4 : -(nodeScreenSize + 4));
+    const elbowX = startX + dir * entry.hLen;
+    const elbowY = vp.y;
+    const endX = elbowX;
+    const endY = elbowY - entry.vLen;
+
+    entry.element.style.left = (dir > 0 ? endX : endX - 200) + 'px';
+    entry.element.style.top = endY + 'px';
+
+    // Store coords for SVG line drawing
+    entry.sx = startX; entry.sy = vp.y;
+    entry.ex = elbowX; entry.ey = elbowY;
+    entry.fx = endX; entry.fy = endY;
+    entry.color = getLevelColor(nodeData.find(n => n.id === nodeId)?.level || 'task');
+  });
+
+  drawLeaderLineSVG();
+}
+
+function drawLeaderLineSVG() {
+  let svg = document.getElementById('leaderSVG');
+  if (!svg) {
+    svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.id = 'leaderSVG';
+    svg.style.cssText = 'position:fixed;inset:0;z-index:43;pointer-events:none;width:100%;height:100%';
+    document.body.appendChild(svg);
+  }
+
+  let paths = '';
+  activeLeaderLines.forEach((entry) => {
+    if (entry.sx == null) return;
+    const c = entry.color;
+    // Anchor dot
+    paths += `<circle cx="${entry.sx}" cy="${entry.sy}" r="2.5" fill="${c}" opacity="0.5"/>`;
+    // Hockey stick: horizontal then vertical
+    paths += `<path d="M${entry.sx},${entry.sy} L${entry.ex},${entry.ey} L${entry.fx},${entry.fy}" fill="none" stroke="${c}" stroke-width="1" opacity="0.4"/>`;
+    // Terminal dot
+    paths += `<circle cx="${entry.fx}" cy="${entry.fy}" r="1.5" fill="${c}" opacity="0.5"/>`;
+  });
+
+  svg.innerHTML = paths;
+}
+
+// ─── Placeholder Data ───
+const PLACEHOLDER_NODES = [
+  { id: 'ph_root', label: 'Project Alpha', level: 'project', owner: 'Lead', fn: 'Platform', parent: null,
+    notes: 'Root project container. Demonstrates full 6-level hierarchy schema.' },
+  { id: 'ph_b1', label: 'Frontend', level: 'board_owner', owner: 'Alice', fn: 'UI', parent: 'ph_root',
+    notes: 'User-facing application surfaces and components.' },
+  { id: 'ph_b2', label: 'Backend', level: 'board_owner', owner: 'Bob', fn: 'API', parent: 'ph_root',
+    notes: 'Server-side services, APIs, and data processing.' },
+  { id: 'ph_b3', label: 'Data Ops', level: 'board_owner', owner: 'Carol', fn: 'Data', parent: 'ph_root',
+    notes: 'Data pipeline, ETL, and analytics infrastructure.' },
+  { id: 'ph_f1', label: 'Dashboard', level: 'feature', owner: 'Alice', fn: 'UI', parent: 'ph_b1',
+    notes: 'Main user dashboard with real-time widgets and charts.' },
+  { id: 'ph_f2', label: 'Auth System', level: 'feature', owner: 'Alice', fn: 'Security', parent: 'ph_b1',
+    notes: 'OAuth2 authentication with role-based access control.' },
+  { id: 'ph_f3', label: 'REST API', level: 'feature', owner: 'Bob', fn: 'API', parent: 'ph_b2',
+    notes: 'RESTful endpoints for all domain entities.' },
+  { id: 'ph_f4', label: 'Database', level: 'feature', owner: 'Bob', fn: 'Data', parent: 'ph_b2',
+    notes: 'PostgreSQL schema with migrations and indices.' },
+  { id: 'ph_f5', label: 'ETL Pipeline', level: 'feature', owner: 'Carol', fn: 'Data', parent: 'ph_b3',
+    notes: 'Extract-transform-load pipeline for data warehousing.' },
+  { id: 'ph_t1', label: 'Widget Grid', level: 'task', owner: 'Alice', fn: 'UI', parent: 'ph_f1',
+    notes: 'Responsive grid layout for dashboard widgets.' },
+  { id: 'ph_t2', label: 'Chart Engine', level: 'task', owner: 'Alice', fn: 'Viz', parent: 'ph_f1',
+    notes: 'D3-based charting library integration.' },
+  { id: 'ph_t3', label: 'Login Flow', level: 'task', owner: 'Alice', fn: 'Security', parent: 'ph_f2',
+    notes: 'OAuth2 login with token refresh and session management.' },
+  { id: 'ph_t4', label: 'CRUD Routes', level: 'task', owner: 'Bob', fn: 'API', parent: 'ph_f3',
+    notes: 'Standard CRUD operations with validation and pagination.' },
+  { id: 'ph_t5', label: 'WebSocket', level: 'task', owner: 'Bob', fn: 'Realtime', parent: 'ph_f3',
+    notes: 'Real-time event broadcasting for live updates.' },
+  { id: 'ph_t6', label: 'Migrations', level: 'task', owner: 'Bob', fn: 'DB', parent: 'ph_f4',
+    notes: 'Schema versioning and migration tooling.' },
+  { id: 'ph_t7', label: 'Ingestion', level: 'task', owner: 'Carol', fn: 'Data', parent: 'ph_f5',
+    notes: 'Source data extraction and normalization.' },
+  { id: 'ph_t8', label: 'Transform', level: 'task', owner: 'Carol', fn: 'Data', parent: 'ph_f5',
+    notes: 'Data transformation rules and validation.' },
+  { id: 'ph_s1', label: 'Breakpoints', level: 'subtask', owner: 'Alice', fn: 'UI', parent: 'ph_t1',
+    notes: 'Responsive breakpoint configuration.' },
+  { id: 'ph_s2', label: 'Drag Resize', level: 'subtask', owner: 'Alice', fn: 'UI', parent: 'ph_t1',
+    notes: 'Widget drag-to-resize interaction.' },
+  { id: 'ph_s3', label: 'Bar Charts', level: 'subtask', owner: 'Alice', fn: 'Viz', parent: 'ph_t2',
+    notes: 'Horizontal and vertical bar chart components.' },
+  { id: 'ph_s4', label: 'Token Refresh', level: 'subtask', owner: 'Alice', fn: 'Security', parent: 'ph_t3',
+    notes: 'Silent token refresh before expiry.' },
+  { id: 'ph_s5', label: 'Validation', level: 'subtask', owner: 'Bob', fn: 'API', parent: 'ph_t4',
+    notes: 'Request body validation with error responses.' },
+  { id: 'ph_s6', label: 'Pagination', level: 'subtask', owner: 'Bob', fn: 'API', parent: 'ph_t4',
+    notes: 'Cursor-based pagination for list endpoints.' },
+  { id: 'ph_s7', label: 'CSV Parser', level: 'subtask', owner: 'Carol', fn: 'Data', parent: 'ph_t7',
+    notes: 'Stream-based CSV parsing with error recovery.' },
+  { id: 'ph_s8', label: 'Rules Engine', level: 'subtask', owner: 'Carol', fn: 'Data', parent: 'ph_t8',
+    notes: 'Configurable transform rule definitions.' },
+  { id: 'ph_a1', label: 'Build grid', level: 'action', owner: 'Alice', fn: 'UI', parent: 'ph_s1',
+    notes: 'Implement CSS grid with breakpoint observer.' },
+  { id: 'ph_a2', label: 'Test resize', level: 'action', owner: 'Alice', fn: 'QA', parent: 'ph_s2',
+    notes: 'E2E tests for drag-to-resize across viewports.' },
+  { id: 'ph_a3', label: 'Schema v1', level: 'action', owner: 'Bob', fn: 'DB', parent: 'ph_s5',
+    notes: 'Write JSON schema for request validation.' },
+  { id: 'ph_a4', label: 'Parse spec', level: 'action', owner: 'Carol', fn: 'Docs', parent: 'ph_s7',
+    notes: 'Document CSV column mapping specification.' },
+  { id: 'ph_a5', label: 'Unit tests', level: 'action', owner: 'Bob', fn: 'QA', parent: 'ph_s6',
+    notes: 'Pagination cursor encoding/decoding tests.' },
+];
+
+const PLACEHOLDER_DEPS = [
+  { src: 'ph_f1', tgt: 'ph_f3', kind: 'depends_on' },
+  { src: 'ph_f5', tgt: 'ph_f4', kind: 'depends_on' },
+  { src: 'ph_t3', tgt: 'ph_t4', kind: 'blocks' },
+  { src: 'ph_t5', tgt: 'ph_t4', kind: 'depends_on' },
+  { src: 'ph_t8', tgt: 'ph_t7', kind: 'depends_on' },
+  { src: 'ph_f4', tgt: 'ph_f3', kind: 'depends_on' },
+  { src: 'ph_t6', tgt: 'ph_t4', kind: 'blocks' },
+  { src: 'ph_t2', tgt: 'ph_t1', kind: 'depends_on' },
+];
+
+const PLACEHOLDER_WORKITEMS = [
+  { id: 'pw1', node: 'ph_t1', title: 'Grid layout system', status: 'doing', who: 'Alice' },
+  { id: 'pw2', node: 'ph_t1', title: 'Breakpoint config', status: 'next_up', who: 'Alice' },
+  { id: 'pw3', node: 'ph_t2', title: 'Bar chart module', status: 'doing', who: 'Alice' },
+  { id: 'pw4', node: 'ph_t3', title: 'OAuth flow', status: 'backlog', who: 'Alice' },
+  { id: 'pw5', node: 'ph_t4', title: 'Entity CRUD', status: 'done', who: 'Bob' },
+  { id: 'pw6', node: 'ph_t4', title: 'Pagination cursors', status: 'doing', who: 'Bob' },
+  { id: 'pw7', node: 'ph_t5', title: 'Socket setup', status: 'backlog', who: 'Bob' },
+  { id: 'pw8', node: 'ph_t6', title: 'Initial migration', status: 'done', who: 'Bob' },
+  { id: 'pw9', node: 'ph_t7', title: 'CSV parser', status: 'done', who: 'Carol' },
+  { id: 'pw10', node: 'ph_t8', title: 'Transform rules', status: 'next_up', who: 'Carol' },
+  { id: 'pw11', node: 'ph_t2', title: 'Line charts', status: 'backlog', who: null },
+  { id: 'pw12', node: 'ph_t7', title: 'JSON source', status: 'doing', who: 'Carol' },
+];
+
+const PLACEHOLDER_SYNC = [
+  { from: 'Source Database', to: 'Data Ingestion', label: 'extract' },
+  { from: 'Data Ingestion', to: 'App Database', label: 'load' },
+  { from: 'App Database', to: 'Transform Engine', label: 'transform' },
+  { from: 'Transform Engine', to: 'Source Database', label: 'sync' },
+  { from: 'App Database', to: 'WebSocket Server', label: 'events' },
+  { from: 'WebSocket Server', to: 'Dashboard UI', label: 'realtime' },
+  { from: 'Dashboard UI', to: 'REST API', label: 'mutations' },
+  { from: 'REST API', to: 'App Database', label: 'persist' },
+];
+
+// ─── Active Data (switchable) ───
+let activeDataSource = 'example';
+let nodeData, depEdges, workItems, syncFlowData;
+
+function loadDataSource(source) {
+  activeDataSource = source;
+  if (source === 'placeholder') {
+    nodeData = PLACEHOLDER_NODES;
+    depEdges = PLACEHOLDER_DEPS;
+    workItems = PLACEHOLDER_WORKITEMS;
+    syncFlowData = PLACEHOLDER_SYNC;
+  } else {
+    nodeData = EXAMPLE_NODES;
+    depEdges = EXAMPLE_DEPS;
+    workItems = EXAMPLE_WORKITEMS;
+    syncFlowData = EXAMPLE_SYNC;
+  }
+}
 
 // ─── State ───
 let currentView = 'hierarchy';
@@ -1337,7 +1901,8 @@ function drawDitheredShadow(ctx, x, y, size, offset, alpha) {
         if (a > 0.01 && r > 0.2) {
           ctx.beginPath();
           ctx.arc(px, py, r, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(42,37,32,${a.toFixed(3)})`;
+          const dotColor = isDarkTheme ? `rgba(0,0,0,${(a * 1.5).toFixed(3)})` : `rgba(42,37,32,${a.toFixed(3)})`;
+          ctx.fillStyle = dotColor;
           ctx.fill();
         }
       }
@@ -1371,21 +1936,21 @@ function hierarchyLayout() {
     const sx = xc - (ch.length - 1) * sp / 2;
     ch.forEach((c, i) => lay(c.id, sx + i * sp, sp * 0.75));
   }
-  lay('n_root', 0, 10);
+  const root = nodeData.find(n => !n.parent);
+  if (root) lay(root.id, 0, 10);
   return positions;
 }
 
 function syncLayout() {
   const positions = {};
-  const syncNodes = [
-    { id: 'Obsidian Vault', x: -4, y: -1 },
-    { id: 'Frontmatter Parser', x: -1.5, y: -2.5 },
-    { id: 'Rails DB', x: 1.5, y: 0 },
-    { id: 'Block Writer', x: -1.5, y: 2.5 },
-    { id: 'ActionCable', x: 4, y: -1.5 },
-    { id: 'Workbench UI', x: 4, y: 1.5 },
-    { id: 'Rails API', x: 1.5, y: 2.2 },
-  ];
+  // Derive unique sync node IDs from syncFlowData
+  const idSet = new Set();
+  syncFlowData.forEach(f => { idSet.add(f.from); idSet.add(f.to); });
+  const syncNodes = [...idSet].map((id, i) => {
+    const angle = (Math.PI * 2 / idSet.size) * i - Math.PI / 2;
+    const r = 3.5;
+    return { id, x: Math.cos(angle) * r, y: Math.sin(angle) * r };
+  });
   syncNodes.forEach(n => {
     positions[n.id] = { x: n.x, y: n.y, z: 0.7 + Math.random() * 0.6 };
   });
@@ -1394,8 +1959,9 @@ function syncLayout() {
 
 function lanesLayout() {
   const positions = {};
+  const p = getPalette();
   const lanes = ['backlog', 'next_up', 'doing', 'done'];
-  const laneColor = { backlog: LT.ash, next_up: LT.desert, doing: LT.tidal, done: LT.sage };
+  const laneColor = { backlog: p.ash, next_up: p.l4, doing: p.l1, done: p.l2 };
   lanes.forEach((lane, li) => {
     const lx = -4.5 + li * 3;
     positions[`h_${lane}`] = { x: lx, y: 3.5, z: 1, color: laneColor[lane] };
@@ -1463,16 +2029,13 @@ function buildGraph() {
 
   } else if (currentView === 'sync') {
     const { positions, syncNodes } = syncLayout();
-    const syncColors = {
-      'Obsidian Vault': LT.patina, 'Frontmatter Parser': LT.desert,
-      'Rails DB': LT.terracotta, 'Block Writer': LT.sage,
-      'ActionCable': LT.tidal, 'Workbench UI': LT.tidal, 'Rails API': LT.terracotta
-    };
-    syncNodes.forEach(sn => {
+    const pal = getPalette();
+    const syncPalColors = [pal.accent1, pal.l4, pal.l3, pal.l2, pal.l1, pal.l1, pal.l3];
+    syncNodes.forEach((sn, i) => {
       const p = positions[sn.id];
       g.addNode(sn.id, {
         x: p.x, y: p.y, size: 28 * (depthOn ? p.z : 1),
-        color: syncColors[sn.id] || LT.tidal,
+        color: syncPalColors[i % syncPalColors.length] || pal.l1,
         label: sn.id, level: 'sync', z: p.z, type: 'circle'
       });
     });
@@ -1503,7 +2066,8 @@ function buildGraph() {
     workItems.forEach(wi => {
       const p = pos[wi.id];
       if (!p) return;
-      const laneColor2 = { backlog: LT.ash, next_up: LT.desert, doing: LT.tidal, done: LT.sage };
+      const palL = getPalette();
+    const laneColor2 = { backlog: palL.ash, next_up: palL.l4, doing: palL.l1, done: palL.l2 };
       g.addNode(wi.id, {
         x: p.x, y: p.y, size: 7 * (depthOn ? p.z : 1),
         color: laneColor2[wi.status],
@@ -1613,7 +2177,7 @@ function sigmaSettings() {
     labelFont: '"JetBrains Mono", monospace',
     labelSize: 10,
     labelWeight: '500',
-    labelColor: { color: LT.ink },
+    labelColor: { color: isDarkTheme ? getPalette().sand : getPalette().ink },
     edgeLabelFont: '"JetBrains Mono", monospace',
     edgeLabelSize: 8,
     edgeLabelColor: { color: 'rgba(42,37,32,0.35)' },
@@ -1675,7 +2239,7 @@ function sigmaSettings() {
       // Bold outline
       ctx.beginPath();
       ctx.arc(x, y, size, 0, Math.PI * 2);
-      ctx.strokeStyle = LT.ink;
+      ctx.strokeStyle = isDarkTheme ? getPalette().sand : getPalette().ink;
       ctx.lineWidth = 2.5;
       ctx.stroke();
 
@@ -1703,11 +2267,12 @@ function sigmaSettings() {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
         const ly = y + size + 6;
-        ctx.fillStyle = LT.parchment;
+        const hp = getPalette();
+        ctx.fillStyle = isDarkTheme ? hp.deep : hp.parchment;
         for (let ox = -1; ox <= 1; ox++) for (let oy = -1; oy <= 1; oy++) {
           if (ox || oy) ctx.fillText(label, x + ox, ly + oy);
         }
-        ctx.fillStyle = LT.ink;
+        ctx.fillStyle = isDarkTheme ? hp.sand : hp.ink;
         ctx.fillText(label, x, ly);
       }
     },
@@ -1720,12 +2285,15 @@ function sigmaSettings() {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
       const ly = y + size + 4;
+      const p = getPalette();
+      const haloColor = isDarkTheme ? p.deep : p.parchment;
+      const textColor = isDarkTheme ? `rgba(201,184,150,0.7)` : `rgba(42,37,32,0.65)`;
       // Halo
-      ctx.fillStyle = LT.parchment;
+      ctx.fillStyle = haloColor;
       for (let ox = -1; ox <= 1; ox++) for (let oy = -1; oy <= 1; oy++) {
         if (ox || oy) ctx.fillText(label, x + ox, ly + oy);
       }
-      ctx.fillStyle = 'rgba(42,37,32,0.65)';
+      ctx.fillStyle = textColor;
       ctx.fillText(label, x, ly);
     },
 
@@ -1733,25 +2301,29 @@ function sigmaSettings() {
       const { x, y, size, color, level } = data;
       const zVal = data.z || 1;
       const shOff = depthOn ? LEVEL_SHADOW[level || 'task'] * zVal : 1.5;
+      const shapeName = getNodeShape(level, data.shape);
+      const drawShape = SHAPE_LIBRARY[shapeName] || SHAPE_LIBRARY.circle;
+      const p = getPalette();
+      const outlineColor = isDarkTheme ? `rgba(201,184,150,0.45)` : `rgba(42,37,32,0.45)`;
+      const halftoneColor = isDarkTheme ? `rgba(255,255,255,0.16)` : `rgba(255,255,255,0.22)`;
+      const shadowAlpha = isDarkTheme ? 0.25 : 0.15;
 
       // Dithered shadow
-      drawDitheredShadow(ctx, x, y, size, shOff, 0.15);
+      drawDitheredShadow(ctx, x, y, size, shOff, shadowAlpha);
 
-      // Main circle
-      ctx.beginPath();
-      ctx.arc(x, y, size, 0, Math.PI * 2);
+      // Main shape
+      drawShape(ctx, x, y, size);
       ctx.fillStyle = color;
       ctx.fill();
 
       // Halftone dots
       if (halftoneOn && size > 3.5) {
         ctx.save();
-        ctx.beginPath();
-        ctx.arc(x, y, size - 0.5, 0, Math.PI * 2);
+        drawShape(ctx, x, y, size - 0.5);
         ctx.clip();
         const step = Math.max(2.2, size * 0.28);
         const dr = step * 0.18;
-        ctx.fillStyle = 'rgba(255,255,255,0.22)';
+        ctx.fillStyle = halftoneColor;
         for (let dy = -size; dy <= size; dy += step) {
           for (let dx = -size; dx <= size; dx += step) {
             if (dx * dx + dy * dy < (size - 0.5) * (size - 0.5)) {
@@ -1771,9 +2343,8 @@ function sigmaSettings() {
       ctx.fill();
 
       // Outline
-      ctx.beginPath();
-      ctx.arc(x, y, size, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(42,37,32,0.45)';
+      drawShape(ctx, x, y, size);
+      ctx.strokeStyle = outlineColor;
       ctx.lineWidth = 1.8;
       ctx.stroke();
 
@@ -1825,6 +2396,9 @@ function initRenderer() {
         size: hoveredNode && (src === hoveredNode || tgt === hoveredNode) ? attrs.size * 1.5 : attrs.size
       });
     });
+
+    // Update leader line positions on every render
+    if (activeLeaderLines.size > 0) updateLeaderPositions();
   });
 
   // Track mouse for hover tooltip positioning
@@ -1848,12 +2422,13 @@ function initRenderer() {
   });
   sigmaInstance.on('clickNode', ({ node }) => {
     if (selectedNode === node) {
-      // Clicking same node again unpins it
       selectedNode = null;
+      removeLeaderLine(node);
       document.getElementById('info').classList.remove('show');
       document.getElementById('info').classList.remove('pinned');
     } else {
       selectedNode = node;
+      createLeaderLine(node); // Hockey stick callout
       showInfo(node);
       document.getElementById('info').classList.add('pinned');
     }
@@ -2034,6 +2609,7 @@ window.setView = function(v) {
   document.querySelectorAll('.c-btn[data-v]').forEach(b => b.classList.toggle('active', b.dataset.v === v));
   selectedNode = null;
   hoveredNode = null;
+  clearAllLeaderLines();
   document.getElementById('info').classList.remove('show');
   initRenderer();
 };
@@ -2056,8 +2632,52 @@ window.togLabels = function() {
   sigmaInstance?.refresh();
 };
 
+// ─── Palette / Theme / Shape Mode / Data Switching ───
+window.setPalette = function(pal) {
+  currentPalette = pal;
+  localStorage.setItem('pcg_palette', pal);
+  document.body.setAttribute('data-palette', pal);
+  document.querySelectorAll('.palette-swatch').forEach(s => s.classList.toggle('active', s.dataset.pal === pal));
+  rebuildLevelColors();
+  clearAllLeaderLines();
+  initRenderer();
+};
+
+window.togTheme = function() {
+  isDarkTheme = !isDarkTheme;
+  localStorage.setItem('pcg_theme', isDarkTheme ? 'dark' : 'light');
+  document.body.classList.toggle('theme-dark', isDarkTheme);
+  document.getElementById('tTheme').classList.toggle('on', isDarkTheme);
+  document.getElementById('tTheme').textContent = isDarkTheme ? 'light' : 'dark';
+  clearAllLeaderLines();
+  initRenderer();
+};
+
+window.togShapeMode = function() {
+  shapeMode = shapeMode === 'process' ? 'systems' : 'process';
+  document.getElementById('tShapes').classList.toggle('on', shapeMode === 'systems');
+  clearAllLeaderLines();
+  initRenderer();
+};
+
+window.switchDataSource = function(source) {
+  loadDataSource(source);
+  selectedNode = null;
+  hoveredNode = null;
+  clearAllLeaderLines();
+  document.getElementById('info').classList.remove('show');
+  initRenderer();
+};
+
+function cyclePalette() {
+  const pals = Object.keys(PALETTES);
+  const idx = pals.indexOf(currentPalette);
+  setPalette(pals[(idx + 1) % pals.length]);
+}
+
 // Keyboard
 document.addEventListener('keydown', e => {
+  if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'SELECT') return;
   if (e.key === '1') setView('hierarchy');
   if (e.key === '2') setView('sync');
   if (e.key === '3') setView('lanes');
@@ -2065,11 +2685,15 @@ document.addEventListener('keydown', e => {
   if (e.key === 'h' || e.key === 'H') togHalf();
   if (e.key === 'z' || e.key === 'Z') togDepth();
   if (e.key === 'l' || e.key === 'L') togLabels();
+  if (e.key === 's' || e.key === 'S') togShapeMode();
+  if (e.key === 'd' || e.key === 'D') togTheme();
+  if (e.key === 'p' || e.key === 'P') cyclePalette();
   if (e.key === 'r' || e.key === 'R') {
     sigmaInstance?.getCamera().animatedReset({ duration: 300 });
   }
   if (e.key === 'Escape') {
     selectedNode = null;
+    clearAllLeaderLines();
     document.getElementById('info').classList.remove('show');
     document.getElementById('info').classList.remove('pinned');
   }
@@ -2085,7 +2709,7 @@ let feedbackType = 'feedback'; // feedback, task, missing, improvement, question
 const AGENT_CONFIG = {
   apiEndpoint: null,  // Set to URL like 'https://your-api.com/agent' to enable
   apiKey: null,       // Optional API key for authentication
-  projectId: 'openclaw',
+  projectId: 'pcg-ux',
   async submitFeedback(item) {
     if (!this.apiEndpoint) {
       console.log('[Agent] No API endpoint configured — feedback stored locally only.', item);
@@ -2229,7 +2853,7 @@ function renderReviewQueueItems() {
   container.innerHTML = filtered.map(item => {
     const date = new Date(item.createdAt);
     const ts = date.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const nodeChipHtml = item.nodeId ? `<span class="node-chip" style="color:${LEVEL_COLOR[nodeData.find(n=>n.id===item.nodeId)?.level] || LT.tidal};background:${LEVEL_COLOR[nodeData.find(n=>n.id===item.nodeId)?.level] || LT.tidal}12;font-size:8px" onclick="focusGraphNode('${item.nodeId}')"><span class="chip-dot" style="background:${LEVEL_COLOR[nodeData.find(n=>n.id===item.nodeId)?.level] || LT.tidal}"></span>${item.nodeLabel || item.nodeId}</span>` : '';
+    const nodeChipHtml = item.nodeId ? `<span class="node-chip" style="color:${LEVEL_COLOR[nodeData.find(n=>n.id===item.nodeId)?.level] || getPalette().l1};background:${LEVEL_COLOR[nodeData.find(n=>n.id===item.nodeId)?.level] || getPalette().l1}12;font-size:8px" onclick="focusGraphNode('${item.nodeId}')"><span class="chip-dot" style="background:${LEVEL_COLOR[nodeData.find(n=>n.id===item.nodeId)?.level] || getPalette().l1}"></span>${item.nodeLabel || item.nodeId}</span>` : '';
 
     return `<div class="rq-item" data-id="${item.id}">
       <div class="rq-item-head">
@@ -2500,7 +3124,7 @@ function addAgentMsg(html, role, referencedNodes) {
 function makeNodeChip(nodeId) {
   const nd = nodeData.find(n => n.id === nodeId);
   if (!nd) return '';
-  const color = LEVEL_COLOR[nd.level] || LT.tidal;
+  const color = LEVEL_COLOR[nd.level] || getPalette().l1;
   return `<span class="node-chip" style="color:${color};background:${color}12" onclick="focusGraphNode('${nodeId}')"><span class="chip-dot" style="background:${color}"></span>${nd.label}</span>`;
 }
 
@@ -2599,7 +3223,8 @@ function queryStatusSummary() {
 
   const blockerCount = depEdges.filter(d => d.kind === 'blocks').length;
 
-  let html = `<strong>Project Status — OpenClaw</strong>`;
+  const rootNode = nodeData.find(n => n.level === 'project');
+  let html = `<strong>Project Status — ${rootNode?.label || 'Graph'}</strong>`;
   html += `<div class="agent-result"><div class="ar-title">Hierarchy</div>`;
   Object.entries(levels).forEach(([level, count]) => {
     html += `<div class="ar-row"><span>${level.replace('_',' ')}</span><span style="font-weight:600">${count}</span></div>`;
@@ -2906,6 +3531,20 @@ document.addEventListener('keydown', e => {
 });
 
 // ─── Boot ───
+// Init palette
+document.body.setAttribute('data-palette', currentPalette);
+document.querySelectorAll('.palette-swatch').forEach(s => s.classList.toggle('active', s.dataset.pal === currentPalette));
+
+// Init theme
+if (isDarkTheme) {
+  document.body.classList.add('theme-dark');
+  document.getElementById('tTheme').classList.add('on');
+  document.getElementById('tTheme').textContent = 'light';
+}
+
+// Init data + colors
+loadDataSource('example');
+rebuildLevelColors();
 initRenderer();
 updateReviewQueueUI();
 

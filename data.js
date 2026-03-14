@@ -1,41 +1,45 @@
 /**
- * Process Context Graph — Data Configuration
+ * PCG-UX — Process Context Graph Data Configuration
  *
- * Edit this file to load your own project hierarchy.
- * All nodes are rendered as circles. Size and color are driven by `level`.
+ * This file contains example and placeholder data for the graph.
+ * Edit or replace to load your own project hierarchy.
  *
  * Schema levels:
- *   L1  project      — Root container (largest, Tidal #5A7D8A)
- *   L2  board_owner  — Domain scope (Sage #6B7F5E)
- *   L3  feature      — Deliverable unit (Terracotta #B85C38)
- *   L4  task         — Execution unit (Desert #D4A96A)
- *   L5  subtask      — Granular step (Sandbar #C4A77D)
- *   L6  action       — Atomic leaf (Ash #9A9590)
+ *   L1  project      — Root container
+ *   L2  board_owner  — Domain scope / team
+ *   L3  feature      — Deliverable unit
+ *   L4  task         — Execution unit
+ *   L5  subtask      — Granular step
+ *   L6  action       — Atomic leaf
+ *
+ * Node properties:
+ *   id, label, level, owner, fn, parent, notes, due (optional)
+ *   shape (optional) — 'circle' | 'roundedRect' | 'diamond' | 'hexagon' |
+ *                       'octagon' | 'pill' | 'triangle' | 'pentagon'
  *
  * Edge types:
- *   hierarchy   — Parent→child (solid, sand)
- *   depends_on  — Prerequisite (dashed terracotta)
- *   blocks      — Hard blocker (thick dashed juke)
- *   sync_flow   — Vault↔DB sync (solid patina)
+ *   hierarchy   — Parent→child (solid)
+ *   depends_on  — Prerequisite (dashed)
+ *   blocks      — Hard blocker (thick dashed)
+ *   sync_flow   — Data pipeline flow (solid accent)
+ *
+ * Palettes:
+ *   terrain    — Warm earth tones (default)
+ *   estuary    — Cool blue-greens with copper accents
+ *   ridgeline  — Muted purples with warm grays
  */
 
+// ─── Example Data: OpenClaw ───
 export const nodeData = [
-  // L1 — Project
   { id: 'n_root', label: 'OpenClaw', level: 'project', owner: 'Hank', fn: 'Platform', parent: null },
-
-  // L2 — Board Owners
   { id: 'n_bux', label: 'UX Engineering', level: 'board_owner', owner: 'Henry', fn: 'UX Eng', parent: 'n_root' },
   { id: 'n_bdata', label: 'Data Platform', level: 'board_owner', owner: 'Hank', fn: 'Backend', parent: 'n_root' },
   { id: 'n_bsync', label: 'Vault Sync', level: 'board_owner', owner: 'Hank', fn: 'Sync', parent: 'n_root' },
-
-  // L3 — Features
   { id: 'n_fwb', label: '2.5D Workbench', level: 'feature', owner: 'Henry', fn: 'UX Eng', parent: 'n_bux', due: '2026-03-01' },
   { id: 'n_fgr', label: 'Context Graph', level: 'feature', owner: 'Henry', fn: 'Visualization', parent: 'n_bux' },
   { id: 'n_fap', label: 'Rails API', level: 'feature', owner: 'Hank', fn: 'Backend', parent: 'n_bdata' },
   { id: 'n_fdb', label: 'DB Schema', level: 'feature', owner: 'Hank', fn: 'Data', parent: 'n_bdata' },
   { id: 'n_fsy', label: 'Sync Engine', level: 'feature', owner: 'Hank', fn: 'Sync', parent: 'n_bsync' },
-
-  // L4 — Tasks
   { id: 'n_tcam', label: 'Camera Depth', level: 'task', owner: 'Henry', fn: 'UX', parent: 'n_fwb' },
   { id: 'n_thier', label: 'Hierarchy Drill', level: 'task', owner: 'Henry', fn: 'UX', parent: 'n_fwb' },
   { id: 'n_tdith', label: 'Dither Shader', level: 'task', owner: 'Henry', fn: 'Rendering', parent: 'n_fgr' },
@@ -45,8 +49,6 @@ export const nodeData = [
   { id: 'n_tmig', label: 'Migrations', level: 'task', owner: 'Hank', fn: 'DB', parent: 'n_fdb' },
   { id: 'n_tfm', label: 'Frontmatter Parse', level: 'task', owner: 'Hank', fn: 'Sync', parent: 'n_fsy' },
   { id: 'n_tmb', label: 'Managed Blocks', level: 'task', owner: 'Hank', fn: 'Sync', parent: 'n_fsy' },
-
-  // L5 — Subtasks
   { id: 'n_sfov', label: 'FOV Slider', level: 'subtask', owner: 'Henry', fn: 'UX', parent: 'n_tcam' },
   { id: 'n_sorbit', label: 'Orbit Controls', level: 'subtask', owner: 'Henry', fn: 'UX', parent: 'n_tcam' },
   { id: 'n_sbread', label: 'Breadcrumb Trail', level: 'subtask', owner: 'Henry', fn: 'UX', parent: 'n_thier' },
@@ -55,8 +57,6 @@ export const nodeData = [
   { id: 'n_swi', label: 'WorkItem Lanes', level: 'subtask', owner: 'Hank', fn: 'API', parent: 'n_tcrud' },
   { id: 'n_syaml', label: 'YAML Parser', level: 'subtask', owner: 'Hank', fn: 'Sync', parent: 'n_tfm' },
   { id: 'n_swrite', label: 'Block Writer', level: 'subtask', owner: 'Hank', fn: 'Sync', parent: 'n_tmb' },
-
-  // L6 — Actions
   { id: 'n_afov_impl', label: 'Implement slider', level: 'action', owner: 'Henry', fn: 'UX', parent: 'n_sfov' },
   { id: 'n_afov_test', label: 'Range test', level: 'action', owner: 'Henry', fn: 'QA', parent: 'n_sfov' },
   { id: 'n_ayaml_spec', label: 'Write spec', level: 'action', owner: 'Hank', fn: 'Docs', parent: 'n_syaml' },
@@ -100,4 +100,75 @@ export const syncFlowData = [
   { from: 'ActionCable', to: 'Workbench UI', label: 'realtime' },
   { from: 'Workbench UI', to: 'Rails API', label: 'mutations' },
   { from: 'Rails API', to: 'Rails DB', label: 'persist' },
+];
+
+// ─── Generic Placeholder Data ───
+export const placeholderNodes = [
+  { id: 'ph_root', label: 'Project Alpha', level: 'project', owner: 'Lead', fn: 'Platform', parent: null, notes: 'Root project container.' },
+  { id: 'ph_b1', label: 'Frontend', level: 'board_owner', owner: 'Alice', fn: 'UI', parent: 'ph_root', notes: 'User-facing surfaces.' },
+  { id: 'ph_b2', label: 'Backend', level: 'board_owner', owner: 'Bob', fn: 'API', parent: 'ph_root', notes: 'Server-side services.' },
+  { id: 'ph_b3', label: 'Data Ops', level: 'board_owner', owner: 'Carol', fn: 'Data', parent: 'ph_root', notes: 'Data pipeline.' },
+  { id: 'ph_f1', label: 'Dashboard', level: 'feature', owner: 'Alice', fn: 'UI', parent: 'ph_b1', notes: 'Main dashboard.' },
+  { id: 'ph_f2', label: 'Auth System', level: 'feature', owner: 'Alice', fn: 'Security', parent: 'ph_b1', notes: 'OAuth2 auth.' },
+  { id: 'ph_f3', label: 'REST API', level: 'feature', owner: 'Bob', fn: 'API', parent: 'ph_b2', notes: 'RESTful endpoints.' },
+  { id: 'ph_f4', label: 'Database', level: 'feature', owner: 'Bob', fn: 'Data', parent: 'ph_b2', notes: 'PostgreSQL schema.' },
+  { id: 'ph_f5', label: 'ETL Pipeline', level: 'feature', owner: 'Carol', fn: 'Data', parent: 'ph_b3', notes: 'ETL pipeline.' },
+  { id: 'ph_t1', label: 'Widget Grid', level: 'task', owner: 'Alice', fn: 'UI', parent: 'ph_f1' },
+  { id: 'ph_t2', label: 'Chart Engine', level: 'task', owner: 'Alice', fn: 'Viz', parent: 'ph_f1' },
+  { id: 'ph_t3', label: 'Login Flow', level: 'task', owner: 'Alice', fn: 'Security', parent: 'ph_f2' },
+  { id: 'ph_t4', label: 'CRUD Routes', level: 'task', owner: 'Bob', fn: 'API', parent: 'ph_f3' },
+  { id: 'ph_t5', label: 'WebSocket', level: 'task', owner: 'Bob', fn: 'Realtime', parent: 'ph_f3' },
+  { id: 'ph_t6', label: 'Migrations', level: 'task', owner: 'Bob', fn: 'DB', parent: 'ph_f4' },
+  { id: 'ph_t7', label: 'Ingestion', level: 'task', owner: 'Carol', fn: 'Data', parent: 'ph_f5' },
+  { id: 'ph_t8', label: 'Transform', level: 'task', owner: 'Carol', fn: 'Data', parent: 'ph_f5' },
+  { id: 'ph_s1', label: 'Breakpoints', level: 'subtask', owner: 'Alice', fn: 'UI', parent: 'ph_t1' },
+  { id: 'ph_s2', label: 'Drag Resize', level: 'subtask', owner: 'Alice', fn: 'UI', parent: 'ph_t1' },
+  { id: 'ph_s3', label: 'Bar Charts', level: 'subtask', owner: 'Alice', fn: 'Viz', parent: 'ph_t2' },
+  { id: 'ph_s4', label: 'Token Refresh', level: 'subtask', owner: 'Alice', fn: 'Security', parent: 'ph_t3' },
+  { id: 'ph_s5', label: 'Validation', level: 'subtask', owner: 'Bob', fn: 'API', parent: 'ph_t4' },
+  { id: 'ph_s6', label: 'Pagination', level: 'subtask', owner: 'Bob', fn: 'API', parent: 'ph_t4' },
+  { id: 'ph_s7', label: 'CSV Parser', level: 'subtask', owner: 'Carol', fn: 'Data', parent: 'ph_t7' },
+  { id: 'ph_s8', label: 'Rules Engine', level: 'subtask', owner: 'Carol', fn: 'Data', parent: 'ph_t8' },
+  { id: 'ph_a1', label: 'Build grid', level: 'action', owner: 'Alice', fn: 'UI', parent: 'ph_s1' },
+  { id: 'ph_a2', label: 'Test resize', level: 'action', owner: 'Alice', fn: 'QA', parent: 'ph_s2' },
+  { id: 'ph_a3', label: 'Schema v1', level: 'action', owner: 'Bob', fn: 'DB', parent: 'ph_s5' },
+  { id: 'ph_a4', label: 'Parse spec', level: 'action', owner: 'Carol', fn: 'Docs', parent: 'ph_s7' },
+  { id: 'ph_a5', label: 'Unit tests', level: 'action', owner: 'Bob', fn: 'QA', parent: 'ph_s6' },
+];
+
+export const placeholderDeps = [
+  { src: 'ph_f1', tgt: 'ph_f3', kind: 'depends_on' },
+  { src: 'ph_f5', tgt: 'ph_f4', kind: 'depends_on' },
+  { src: 'ph_t3', tgt: 'ph_t4', kind: 'blocks' },
+  { src: 'ph_t5', tgt: 'ph_t4', kind: 'depends_on' },
+  { src: 'ph_t8', tgt: 'ph_t7', kind: 'depends_on' },
+  { src: 'ph_f4', tgt: 'ph_f3', kind: 'depends_on' },
+  { src: 'ph_t6', tgt: 'ph_t4', kind: 'blocks' },
+  { src: 'ph_t2', tgt: 'ph_t1', kind: 'depends_on' },
+];
+
+export const placeholderWorkItems = [
+  { id: 'pw1', node: 'ph_t1', title: 'Grid layout', status: 'doing', who: 'Alice' },
+  { id: 'pw2', node: 'ph_t1', title: 'Breakpoints', status: 'next_up', who: 'Alice' },
+  { id: 'pw3', node: 'ph_t2', title: 'Bar charts', status: 'doing', who: 'Alice' },
+  { id: 'pw4', node: 'ph_t3', title: 'OAuth flow', status: 'backlog', who: 'Alice' },
+  { id: 'pw5', node: 'ph_t4', title: 'Entity CRUD', status: 'done', who: 'Bob' },
+  { id: 'pw6', node: 'ph_t4', title: 'Pagination', status: 'doing', who: 'Bob' },
+  { id: 'pw7', node: 'ph_t5', title: 'Socket setup', status: 'backlog', who: 'Bob' },
+  { id: 'pw8', node: 'ph_t6', title: 'Migration v1', status: 'done', who: 'Bob' },
+  { id: 'pw9', node: 'ph_t7', title: 'CSV parser', status: 'done', who: 'Carol' },
+  { id: 'pw10', node: 'ph_t8', title: 'Transform rules', status: 'next_up', who: 'Carol' },
+  { id: 'pw11', node: 'ph_t2', title: 'Line charts', status: 'backlog', who: null },
+  { id: 'pw12', node: 'ph_t7', title: 'JSON source', status: 'doing', who: 'Carol' },
+];
+
+export const placeholderSync = [
+  { from: 'Source Database', to: 'Data Ingestion', label: 'extract' },
+  { from: 'Data Ingestion', to: 'App Database', label: 'load' },
+  { from: 'App Database', to: 'Transform Engine', label: 'transform' },
+  { from: 'Transform Engine', to: 'Source Database', label: 'sync' },
+  { from: 'App Database', to: 'WebSocket Server', label: 'events' },
+  { from: 'WebSocket Server', to: 'Dashboard UI', label: 'realtime' },
+  { from: 'Dashboard UI', to: 'REST API', label: 'mutations' },
+  { from: 'REST API', to: 'App Database', label: 'persist' },
 ];
