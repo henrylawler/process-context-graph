@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Process Context Graph — LeveeTech</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,500;7..72,600&family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:wght@600;700;800&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    /* LeveeTech Terrain Palette */
+    --lt-terracotta: #B85C38;
+    --lt-sage: #6B7F5E;
+    --lt-tidal: #5A7D8A;
+    --lt-sand: #C9B896;
+    --lt-charcoal: #2C2C2C;
+    --lt-deep: #1A1816;
+    --lt-desert: #D4A96A;
+    --lt-forest: #3A4F3A;
+    --lt-ocean: #2B3E50;
+    --lt-coral: #C17C60;
+    --lt-patina: #5E8B7E;
+    --lt-driftwood: #7A6B5D;
+    --lt-lichen: #8A9A7B;
+    --lt-parchment: #F4EDE0;
+    --lt-paper: #FAF7F0;
+    --lt-bone: #E8E0D0;
+    --lt-ash: #9A9590;
+    --lt-ink: #2A2520;
+    --hank-oxbow: #5C4033;
+    --hank-levee: #4A5D23;
+    --hank-channel: #2B4257;
+    --hank-sandbar: #C4A77D;
+    --hank-juke: #B34233;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    font-family: 'Literata', serif;
+    background: var(--lt-paper);
+  }
+
+  /* ─── Canvas surface ─── */
+  .surface {
+    position: absolute;
+    inset: 0;
+    background: var(--lt-paper);
+  }
+
+  /* Paper fiber texture */
+  .surface::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 1.5px, rgba(170,160,140,0.025) 1.5px, rgba(170,160,140,0.025) 2.5px),
+      repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(170,160,140,0.018) 2px, rgba(170,160,140,0.018) 3px);
+  }
+
+  /* Grain overlay */
+  .grain {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0.25;
+    mix-blend-mode: multiply;
+  }
+  .grain svg { width: 100%; height: 100%; }
+
+  /* Sigma container */
+  .sigma-container {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+  }
+  .sigma-container canvas { position: absolute !important; }
+
+  /* ─── UI Chrome ─── */
+  .ui-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    pointer-events: none;
+  }
+  .ui-layer > * { pointer-events: auto; }
+
+  /* Header */
+  .hdr {
+    position: absolute;
+    top: 18px;
+    left: 22px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+  .hdr h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    color: var(--lt-ink);
+  }
+  .hdr .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8.5px;
+    font-weight: 500;
+    letter-spacing: 0.8px;
+    padding: 2px 7px;
+    border-radius: 2px;
+    color: var(--lt-ash);
+    background: rgba(42,37,32,0.05);
+  }
+
+  /* Controls */
+  .controls {
+    position: absolute;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 2px;
+    padding: 3px;
+    border-radius: 5px;
+    background: rgba(42,37,32,0.04);
+    border: 1px solid var(--lt-bone);
+    backdrop-filter: blur(10px);
+  }
+
+  .c-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    padding: 5px 12px;
+    border: none;
+    border-radius: 3px;
+    background: transparent;
+    color: var(--lt-ash);
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+  .c-btn:hover { color: var(--lt-ink); }
+  .c-btn.active {
+    color: var(--lt-ink);
+    background: var(--lt-paper);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+
+  .toggles {
+    position: absolute;
+    top: 52px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+  }
+  .t-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8.5px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border: 1px solid var(--lt-bone);
+    border-radius: 2px;
+    background: transparent;
+    color: var(--lt-ash);
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.3px;
+  }
+  .t-btn:hover { border-color: var(--lt-driftwood); }
+  .t-btn.on { border-color: var(--lt-terracotta); color: var(--lt-terracotta); }
+
+  /* Info panel */
+  .info {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(8px);
+    width: 340px;
+    background: var(--lt-paper);
+    border: 1px solid var(--lt-bone);
+    border-radius: 6px;
+    box-shadow: 0 6px 24px rgba(26,24,22,0.1), 0 2px 6px rgba(26,24,22,0.05);
+    font-size: 11px;
+    opacity: 0;
+    transition: all 0.2s ease;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 40;
+  }
+  .info.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
+  }
+  .info-head {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--lt-bone);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .info-head h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--lt-ink);
+  }
+  .info-head .lvl {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 2px;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .info-body { padding: 10px 14px; }
+  .ir {
+    display: flex;
+    justify-content: space-between;
+    padding: 3px 0;
+    border-bottom: 1px solid rgba(232,224,208,0.5);
+  }
+  .ir-k { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--lt-ash); }
+  .ir-v { font-weight: 600; color: var(--lt-ink); font-size: 10px; }
+  .isec {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--lt-driftwood);
+    margin: 8px 0 4px;
+  }
+  .wi-r {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 3px 6px;
+    margin: 2px 0;
+    border-radius: 3px;
+    background: rgba(42,37,32,0.02);
+    border-left: 2.5px solid transparent;
+    font-size: 10px;
+  }
+  .wi-r.doing { border-left-color: var(--lt-tidal); }
+  .wi-r.done { border-left-color: var(--lt-sage); }
+  .wi-r.next_up { border-left-color: var(--lt-desert); }
+  .wi-r.backlog { border-left-color: var(--lt-bone); }
+  .wi-s {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .wi-s.doing { color: var(--lt-tidal); }
+  .wi-s.done { color: var(--lt-sage); }
+  .wi-s.next_up { color: var(--lt-desert); }
+  .wi-s.backlog { color: var(--lt-ash); }
+
+  /* Legend */
+  .legend {
+    position: absolute;
+    bottom: 16px;
+    left: 22px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .lg {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    color: var(--lt-ink);
+  }
+  .lg-d {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    border: 1.5px solid var(--lt-ink);
+  }
+
+  /* Edge legend */
+  .edge-legend {
+    position: absolute;
+    bottom: 34px;
+    left: 22px;
+    display: flex;
+    gap: 16px;
+  }
+  .elg {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7.5px;
+    color: var(--lt-ash);
+    letter-spacing: 0.3px;
+  }
+  .elg-line {
+    width: 24px;
+    height: 0;
+    border-top-width: 2px;
+    border-top-style: solid;
+  }
+
+  .keys {
+    position: absolute;
+    bottom: 50px;
+    left: 22px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7.5px;
+    color: rgba(154,149,144,0.5);
+    letter-spacing: 0.2px;
+  }
+
+  /* Tooltip */
+  .tip {
+    position: fixed;
+    font-family: 'Playfair Display', serif;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 9px;
+    border-radius: 3px;
+    pointer-events: none;
+    z-index: 50;
+    opacity: 0;
+    transition: opacity 0.1s;
+    white-space: nowrap;
+    background: var(--lt-ink);
+    color: var(--lt-parchment);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  }
+  .tip.v { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div class="surface">
+  <div class="grain"><svg><filter id="gl"><feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="4" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#gl)" opacity="0.45"/></svg></div>
+  <div id="sigma-main" class="sigma-container"></div>
+</div>
+
+<div class="tip" id="tip"></div>
+
+<div class="ui-layer">
+  <div class="hdr">
+    <h1>Process Context</h1>
+    <span class="tag">process graph · v1.0</span>
+  </div>
+
+  <div class="controls">
+    <button class="c-btn active" data-v="hierarchy" onclick="setView('hierarchy')">Hierarchy</button>
+    <button class="c-btn" data-v="sync" onclick="setView('sync')">Sync</button>
+    <button class="c-btn" data-v="lanes" onclick="setView('lanes')">Lanes</button>
+    <button class="c-btn" data-v="deps" onclick="setView('deps')">Deps</button>
+  </div>
+
+  <div class="toggles">
+    <button class="t-btn on" id="tHalf" onclick="togHalf()">halftone</button>
+    <button class="t-btn on" id="tDepth" onclick="togDepth()">depth</button>
+    <button class="t-btn" id="tLabels" onclick="togLabels()">labels</button>
+  </div>
+
+  <div class="keys">1-4 views · H halftone · Z depth · L labels · R reset · click node for detail · esc close</div>
+
+  <div class="edge-legend">
+    <div class="elg"><div class="elg-line" style="border-color:#C9B896"></div>hierarchy</div>
+    <div class="elg"><div class="elg-line" style="border-color:#B85C38;border-top-style:dashed"></div>depends_on</div>
+    <div class="elg"><div class="elg-line" style="border-color:#B34233;border-top-width:3px;border-top-style:dashed"></div>blocks</div>
+    <div class="elg"><div class="elg-line" style="border-color:#5E8B7E"></div>sync_flow</div>
+  </div>
+
+  <div class="legend">
+    <div class="lg"><div class="lg-d" style="background:#5A7D8A"></div>Project</div>
+    <div class="lg"><div class="lg-d" style="background:#6B7F5E"></div>Board</div>
+    <div class="lg"><div class="lg-d" style="background:#B85C38"></div>Feature</div>
+    <div class="lg"><div class="lg-d" style="background:#D4A96A"></div>Task</div>
+    <div class="lg"><div class="lg-d" style="background:#C4A77D"></div>Subtask</div>
+    <div class="lg"><div class="lg-d" style="background:#9A9590"></div>Action</div>
+  </div>
+
+  <div class="info" id="info"></div>
+</div>
+
+<script type="module">
+import Graph from "https://cdn.jsdelivr.net/npm/graphology@0.26.0/+esm";
+import Sigma from "https://cdn.jsdelivr.net/npm/sigma@3.0.2/+esm";
+
+// ─── LeveeTech Palette ───
+const LT = {
+  terracotta: '#B85C38', sage: '#6B7F5E', tidal: '#5A7D8A',
+  sand: '#C9B896', charcoal: '#2C2C2C', deep: '#1A1816',
+  desert: '#D4A96A', forest: '#3A4F3A', ocean: '#2B3E50',
+  coral: '#C17C60', patina: '#5E8B7E', driftwood: '#7A6B5D',
+  lichen: '#8A9A7B', parchment: '#F4EDE0', paper: '#FAF7F0',
+  bone: '#E8E0D0', ash: '#9A9590', ink: '#2A2520',
+  oxbow: '#5C4033', levee: '#4A5D23', channel: '#2B4257',
+  sandbar: '#C4A77D', juke: '#B34233'
+};
+
+// ─── Level config — all circles, sized by depth ───
+const LEVEL_COLOR = {
+  project: LT.tidal,
+  board_owner: LT.sage,
+  feature: LT.terracotta,
+  task: LT.desert,
+  subtask: LT.sandbar,
+  action: LT.ash,
+  sync: LT.patina,
+  lane_header: LT.driftwood,
+  work_item: LT.tidal
+};
+
+const LEVEL_SIZE = {
+  project: 26,
+  board_owner: 19,
+  feature: 15,
+  task: 11,
+  subtask: 8,
+  action: 5,
+  sync: 18,
+  lane_header: 10,
+  work_item: 7
+};
+
+const LEVEL_SHADOW = {
+  project: 5, board_owner: 4, feature: 3.5,
+  task: 3, subtask: 2.5, action: 1.5,
+  sync: 4, lane_header: 2, work_item: 2
+};
+
+// ─── Domain Data — 6 hierarchy levels ───
+const nodeData = [
+  // L1 — Project
+  { id: 'n_root', label: 'OpenClaw', level: 'project', owner: 'Hank', fn: 'Platform', parent: null },
+
+  // L2 — Board Owners
+  { id: 'n_bux', label: 'UX Engineering', level: 'board_owner', owner: 'Henry', fn: 'UX Eng', parent: 'n_root' },
+  { id: 'n_bdata', label: 'Data Platform', level: 'board_owner', owner: 'Hank', fn: 'Backend', parent: 'n_root' },
+  { id: 'n_bsync', label: 'Vault Sync', level: 'board_owner', owner: 'Hank', fn: 'Sync', parent: 'n_root' },
+
+  // L3 — Features
+  { id: 'n_fwb', label: '2.5D Workbench', level: 'feature', owner: 'Henry', fn: 'UX Eng', parent: 'n_bux', due: '2026-03-01' },
+  { id: 'n_fgr', label: 'Context Graph', level: 'feature', owner: 'Henry', fn: 'Visualization', parent: 'n_bux' },
+  { id: 'n_fap', label: 'Rails API', level: 'feature', owner: 'Hank', fn: 'Backend', parent: 'n_bdata' },
+  { id: 'n_fdb', label: 'DB Schema', level: 'feature', owner: 'Hank', fn: 'Data', parent: 'n_bdata' },
+  { id: 'n_fsy', label: 'Sync Engine', level: 'feature', owner: 'Hank', fn: 'Sync', parent: 'n_bsync' },
+
+  // L4 — Tasks
+  { id: 'n_tcam', label: 'Camera Depth', level: 'task', owner: 'Henry', fn: 'UX', parent: 'n_fwb' },
+  { id: 'n_thier', label: 'Hierarchy Drill', level: 'task', owner: 'Henry', fn: 'UX', parent: 'n_fwb' },
+  { id: 'n_tdith', label: 'Dither Shader', level: 'task', owner: 'Henry', fn: 'Rendering', parent: 'n_fgr' },
+  { id: 'n_tlay', label: 'Layout Engine', level: 'task', owner: 'Henry', fn: 'Graph', parent: 'n_fgr' },
+  { id: 'n_tcrud', label: 'CRUD Endpoints', level: 'task', owner: 'Hank', fn: 'API', parent: 'n_fap' },
+  { id: 'n_trt', label: 'ActionCable', level: 'task', owner: 'Hank', fn: 'Realtime', parent: 'n_fap' },
+  { id: 'n_tmig', label: 'Migrations', level: 'task', owner: 'Hank', fn: 'DB', parent: 'n_fdb' },
+  { id: 'n_tfm', label: 'Frontmatter Parse', level: 'task', owner: 'Hank', fn: 'Sync', parent: 'n_fsy' },
+  { id: 'n_tmb', label: 'Managed Blocks', level: 'task', owner: 'Hank', fn: 'Sync', parent: 'n_fsy' },
+
+  // L5 — Subtasks
+  { id: 'n_sfov', label: 'FOV Slider', level: 'subtask', owner: 'Henry', fn: 'UX', parent: 'n_tcam' },
+  { id: 'n_sorbit', label: 'Orbit Controls', level: 'subtask', owner: 'Henry', fn: 'UX', parent: 'n_tcam' },
+  { id: 'n_sbread', label: 'Breadcrumb Trail', level: 'subtask', owner: 'Henry', fn: 'UX', parent: 'n_thier' },
+  { id: 'n_shalf', label: 'Halftone Variant', level: 'subtask', owner: 'Henry', fn: 'Rendering', parent: 'n_tdith' },
+  { id: 'n_snode', label: 'Node CRUD', level: 'subtask', owner: 'Hank', fn: 'API', parent: 'n_tcrud' },
+  { id: 'n_swi', label: 'WorkItem Lanes', level: 'subtask', owner: 'Hank', fn: 'API', parent: 'n_tcrud' },
+  { id: 'n_syaml', label: 'YAML Parser', level: 'subtask', owner: 'Hank', fn: 'Sync', parent: 'n_tfm' },
+  { id: 'n_swrite', label: 'Block Writer', level: 'subtask', owner: 'Hank', fn: 'Sync', parent: 'n_tmb' },
+
+  // L6 — Actions
+  { id: 'n_afov_impl', label: 'Implement slider', level: 'action', owner: 'Henry', fn: 'UX', parent: 'n_sfov' },
+  { id: 'n_afov_test', label: 'Range test', level: 'action', owner: 'Henry', fn: 'QA', parent: 'n_sfov' },
+  { id: 'n_ayaml_spec', label: 'Write spec', level: 'action', owner: 'Hank', fn: 'Docs', parent: 'n_syaml' },
+  { id: 'n_abread_ui', label: 'Render crumbs', level: 'action', owner: 'Henry', fn: 'UX', parent: 'n_sbread' },
+  { id: 'n_anode_val', label: 'Validate params', level: 'action', owner: 'Hank', fn: 'API', parent: 'n_snode' },
+];
+
+const depEdges = [
+  { src: 'n_fwb', tgt: 'n_fgr', kind: 'depends_on' },
+  { src: 'n_fsy', tgt: 'n_fap', kind: 'depends_on' },
+  { src: 'n_thier', tgt: 'n_tcam', kind: 'blocks' },
+  { src: 'n_trt', tgt: 'n_tcrud', kind: 'depends_on' },
+  { src: 'n_tmb', tgt: 'n_tfm', kind: 'depends_on' },
+  { src: 'n_fdb', tgt: 'n_fap', kind: 'depends_on' },
+  { src: 'n_tmig', tgt: 'n_tcrud', kind: 'blocks' },
+  { src: 'n_tdith', tgt: 'n_tlay', kind: 'depends_on' },
+];
+
+const workItems = [
+  { id: 'w1', node: 'n_tcam', title: 'Tune camera depth', status: 'doing', who: 'Henry' },
+  { id: 'w2', node: 'n_tcam', title: 'FOV slider', status: 'next_up', who: 'Henry' },
+  { id: 'w3', node: 'n_thier', title: 'Expand/collapse', status: 'backlog', who: 'Henry' },
+  { id: 'w4', node: 'n_thier', title: 'Breadcrumb trail', status: 'backlog', who: null },
+  { id: 'w5', node: 'n_tdith', title: 'Ordered dither 4x4', status: 'doing', who: 'Henry' },
+  { id: 'w6', node: 'n_tdith', title: 'Halftone variant', status: 'next_up', who: null },
+  { id: 'w7', node: 'n_tcrud', title: 'Node CRUD', status: 'done', who: 'Hank' },
+  { id: 'w8', node: 'n_tcrud', title: 'Work item lanes', status: 'doing', who: 'Hank' },
+  { id: 'w9', node: 'n_trt', title: 'Channel setup', status: 'backlog', who: 'Hank' },
+  { id: 'w10', node: 'n_tfm', title: 'YAML parser', status: 'done', who: 'Hank' },
+  { id: 'w11', node: 'n_tmb', title: 'Write managed blocks', status: 'next_up', who: 'Hank' },
+  { id: 'w12', node: 'n_tlay', title: 'Force-directed fallback', status: 'doing', who: 'Henry' },
+  { id: 'w13', node: 'n_tmig', title: 'Run initial migration', status: 'done', who: 'Hank' },
+];
+
+const syncFlowData = [
+  { from: 'Obsidian Vault', to: 'Frontmatter Parser', label: 'metadata' },
+  { from: 'Frontmatter Parser', to: 'Rails DB', label: 'vault→db' },
+  { from: 'Rails DB', to: 'Block Writer', label: 'db→vault' },
+  { from: 'Block Writer', to: 'Obsidian Vault', label: 'managed' },
+  { from: 'Rails DB', to: 'ActionCable', label: 'events' },
+  { from: 'ActionCable', to: 'Workbench UI', label: 'realtime' },
+  { from: 'Workbench UI', to: 'Rails API', label: 'mutations' },
+  { from: 'Rails API', to: 'Rails DB', label: 'persist' },
+];
+
+// ─── State ───
+let currentView = 'hierarchy';
+let halftoneOn = true;
+let depthOn = true;
+let labelsOn = false;
+let hoveredNode = null;
+let selectedNode = null;
+let sigmaInstance;
+let graph;
+
+// ─── Edge styling helpers ───
+const EDGE_STYLES = {
+  hierarchy: { color: 'rgba(201,184,150,0.30)', size: 1.2 },
+  depends_on: { color: 'rgba(184,92,56,0.45)', size: 1.8 },
+  blocks: { color: 'rgba(179,66,51,0.55)', size: 2.8 },
+  sync_flow: { color: 'rgba(94,139,126,0.45)', size: 2 }
+};
+
+// ─── Dithered shadow renderer ───
+function drawDitheredShadow(ctx, x, y, size, offset, alpha) {
+  const spacing = Math.max(2, size * 0.18);
+  const maxR = Math.max(0.6, size * 0.06);
+  const bound = size + 4;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(x + offset, y + offset, size + 1, 0, Math.PI * 2);
+  ctx.clip();
+
+  for (let dy = -bound; dy <= bound; dy += spacing) {
+    for (let dx = -bound; dx <= bound; dx += spacing) {
+      const px = x + offset + dx;
+      const py = y + offset + dy;
+      const dist = Math.sqrt(dx * dx + dy * dy) / size;
+      if (dist < 1.2) {
+        const r = maxR * (1 - dist * 0.4);
+        const a = alpha * (1 - dist * 0.5);
+        if (a > 0.01 && r > 0.2) {
+          ctx.beginPath();
+          ctx.arc(px, py, r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(42,37,32,${a.toFixed(3)})`;
+          ctx.fill();
+        }
+      }
+    }
+  }
+  ctx.restore();
+}
+
+// ─── Layout Generators ───
+function hierarchyLayout() {
+  const positions = {};
+  const childMap = {};
+  nodeData.forEach(n => {
+    const p = n.parent || '__root';
+    (childMap[p] = childMap[p] || []).push(n);
+  });
+
+  const levelY = {
+    project: 0, board_owner: -2.5, feature: -5,
+    task: -7.5, subtask: -10, action: -12
+  };
+
+  function lay(id, xc, spread) {
+    const n = nodeData.find(d => d.id === id);
+    if (!n) return;
+    const y = levelY[n.level] || 0;
+    const z = depthOn ? (0.6 + Math.random() * 0.8) : 1;
+    positions[id] = { x: xc, y, z };
+    const ch = childMap[id] || [];
+    const sp = spread / Math.max(ch.length, 1);
+    const sx = xc - (ch.length - 1) * sp / 2;
+    ch.forEach((c, i) => lay(c.id, sx + i * sp, sp * 0.8));
+  }
+  lay('n_root', 0, 6);
+  return positions;
+}
+
+function syncLayout() {
+  const positions = {};
+  const syncNodes = [
+    { id: 'Obsidian Vault', x: -4, y: -1 },
+    { id: 'Frontmatter Parser', x: -1.5, y: -2.5 },
+    { id: 'Rails DB', x: 1.5, y: 0 },
+    { id: 'Block Writer', x: -1.5, y: 2.5 },
+    { id: 'ActionCable', x: 4, y: -1.5 },
+    { id: 'Workbench UI', x: 4, y: 1.5 },
+    { id: 'Rails API', x: 1.5, y: 2.2 },
+  ];
+  syncNodes.forEach(n => {
+    positions[n.id] = { x: n.x, y: n.y, z: 0.7 + Math.random() * 0.6 };
+  });
+  return { positions, syncNodes };
+}
+
+function lanesLayout() {
+  const positions = {};
+  const lanes = ['backlog', 'next_up', 'doing', 'done'];
+  const laneColor = { backlog: LT.ash, next_up: LT.desert, doing: LT.tidal, done: LT.sage };
+  lanes.forEach((lane, li) => {
+    const lx = -4.5 + li * 3;
+    positions[`h_${lane}`] = { x: lx, y: 3.5, z: 1, color: laneColor[lane] };
+    const items = workItems.filter(w => w.status === lane);
+    items.forEach((wi, ii) => {
+      positions[wi.id] = { x: lx, y: 2 - ii * 1.2, z: 0.6 + Math.random() * 0.6, color: laneColor[wi.status] };
+    });
+  });
+  return positions;
+}
+
+function depsLayout() {
+  const positions = {};
+  const ids = new Set();
+  depEdges.forEach(d => { ids.add(d.src); ids.add(d.tgt); });
+  const arr = [...ids];
+  const step = Math.PI * 2 / arr.length;
+  arr.forEach((id, i) => {
+    const a = step * i - Math.PI / 2;
+    const r = 3.5;
+    positions[id] = { x: Math.cos(a) * r, y: Math.sin(a) * r, z: 0.7 + Math.random() * 0.5 };
+  });
+  return positions;
+}
+
+// ─── Build Graph ───
+function buildGraph() {
+  const g = new Graph();
+
+  if (currentView === 'hierarchy') {
+    const pos = hierarchyLayout();
+    nodeData.forEach(n => {
+      const p = pos[n.id];
+      if (!p) return;
+      const sz = LEVEL_SIZE[n.level] * (depthOn ? p.z : 1);
+      g.addNode(n.id, {
+        x: p.x, y: p.y, size: sz,
+        color: LEVEL_COLOR[n.level],
+        label: n.label, level: n.level, owner: n.owner, fn: n.fn, due: n.due,
+        z: p.z, type: 'circle'
+      });
+    });
+    // Hierarchy edges
+    nodeData.forEach(n => {
+      if (n.parent && g.hasNode(n.parent) && g.hasNode(n.id)) {
+        g.addEdge(n.parent, n.id, {
+          size: EDGE_STYLES.hierarchy.size,
+          color: EDGE_STYLES.hierarchy.color,
+          edgeKind: 'hierarchy',
+          type: 'line'
+        });
+      }
+    });
+    // Dependency edges
+    depEdges.forEach(d => {
+      if (g.hasNode(d.src) && g.hasNode(d.tgt)) {
+        g.addEdge(d.src, d.tgt, {
+          size: EDGE_STYLES[d.kind].size,
+          color: EDGE_STYLES[d.kind].color,
+          edgeKind: d.kind,
+          type: 'line', forceLabel: true, label: d.kind
+        });
+      }
+    });
+
+  } else if (currentView === 'sync') {
+    const { positions, syncNodes } = syncLayout();
+    const syncColors = {
+      'Obsidian Vault': LT.patina, 'Frontmatter Parser': LT.desert,
+      'Rails DB': LT.terracotta, 'Block Writer': LT.sage,
+      'ActionCable': LT.tidal, 'Workbench UI': LT.tidal, 'Rails API': LT.terracotta
+    };
+    syncNodes.forEach(sn => {
+      const p = positions[sn.id];
+      g.addNode(sn.id, {
+        x: p.x, y: p.y, size: 18 * (depthOn ? p.z : 1),
+        color: syncColors[sn.id] || LT.tidal,
+        label: sn.id, level: 'sync', z: p.z, type: 'circle'
+      });
+    });
+    syncFlowData.forEach(f => {
+      if (g.hasNode(f.from) && g.hasNode(f.to)) {
+        g.addEdge(f.from, f.to, {
+          size: EDGE_STYLES.sync_flow.size,
+          color: EDGE_STYLES.sync_flow.color,
+          edgeKind: 'sync_flow',
+          type: 'line', label: f.label
+        });
+      }
+    });
+
+  } else if (currentView === 'lanes') {
+    const pos = lanesLayout();
+    const lanes = ['backlog', 'next_up', 'doing', 'done'];
+    const laneColor = { backlog: LT.ash, next_up: LT.desert, doing: LT.tidal, done: LT.sage };
+    lanes.forEach(lane => {
+      const p = pos[`h_${lane}`];
+      g.addNode(`h_${lane}`, {
+        x: p.x, y: p.y, size: 10,
+        color: laneColor[lane],
+        label: lane.replace('_', ' ').toUpperCase(),
+        level: 'lane_header', z: 1, type: 'circle'
+      });
+    });
+    workItems.forEach(wi => {
+      const p = pos[wi.id];
+      if (!p) return;
+      const laneColor2 = { backlog: LT.ash, next_up: LT.desert, doing: LT.tidal, done: LT.sage };
+      g.addNode(wi.id, {
+        x: p.x, y: p.y, size: 7 * (depthOn ? p.z : 1),
+        color: laneColor2[wi.status],
+        label: wi.title, level: 'work_item', z: p.z, wi, type: 'circle'
+      });
+    });
+
+  } else if (currentView === 'deps') {
+    const pos = depsLayout();
+    const depNodeIds = new Set();
+    depEdges.forEach(d => { depNodeIds.add(d.src); depNodeIds.add(d.tgt); });
+    depNodeIds.forEach(id => {
+      const n = nodeData.find(d => d.id === id);
+      if (!n) return;
+      const p = pos[id];
+      if (!p) return;
+      g.addNode(id, {
+        x: p.x, y: p.y, size: 14 * (depthOn ? p.z : 1),
+        color: LEVEL_COLOR[n.level],
+        label: n.label, level: n.level, owner: n.owner, fn: n.fn,
+        z: p.z, type: 'circle'
+      });
+    });
+    depEdges.forEach(d => {
+      if (g.hasNode(d.src) && g.hasNode(d.tgt)) {
+        g.addEdge(d.src, d.tgt, {
+          size: EDGE_STYLES[d.kind].size,
+          color: EDGE_STYLES[d.kind].color,
+          edgeKind: d.kind,
+          type: 'line', label: d.kind
+        });
+      }
+    });
+  }
+
+  return g;
+}
+
+// ─── Custom Edge Programs ───
+// Draw edges with proper dash patterns and arrowheads
+function drawEdges(ctx, sourceData, targetData, edgeData) {
+  const { color, size: edgeSize, edgeKind } = edgeData;
+  const sx = sourceData.x, sy = sourceData.y;
+  const tx = targetData.x, ty = targetData.y;
+  const sR = sourceData.size || 8;
+  const tR = targetData.size || 8;
+
+  // Compute start/end on circle edges
+  const angle = Math.atan2(ty - sy, tx - sx);
+  const x1 = sx + Math.cos(angle) * sR;
+  const y1 = sy + Math.sin(angle) * sR;
+  const x2 = tx - Math.cos(angle) * tR;
+  const y2 = ty - Math.sin(angle) * tR;
+
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = edgeSize || 1.5;
+
+  // Dash pattern by kind
+  if (edgeKind === 'depends_on') {
+    ctx.setLineDash([8, 5]);
+  } else if (edgeKind === 'blocks') {
+    ctx.setLineDash([5, 4]);
+  } else {
+    ctx.setLineDash([]);
+  }
+
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Arrowhead
+  const headLen = Math.min(10, edgeSize * 4);
+  ctx.beginPath();
+  ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - headLen * Math.cos(angle - 0.3), y2 - headLen * Math.sin(angle - 0.3));
+  ctx.lineTo(x2 - headLen * Math.cos(angle + 0.3), y2 - headLen * Math.sin(angle + 0.3));
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+
+  // Edge label
+  if (edgeData.label && labelsOn) {
+    const mx = (x1 + x2) / 2;
+    const my = (y1 + y2) / 2;
+    ctx.font = '500 8px "JetBrains Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const tw = ctx.measureText(edgeData.label).width;
+    ctx.fillStyle = 'rgba(250,247,240,0.88)';
+    ctx.fillRect(mx - tw / 2 - 4, my - 7, tw + 8, 14);
+    ctx.fillStyle = color;
+    ctx.fillText(edgeData.label, mx, my);
+  }
+
+  ctx.restore();
+}
+
+// ─── Sigma Settings ───
+function sigmaSettings() {
+  return {
+    allowInvalidContainer: true,
+    renderLabels: true,
+    renderEdgeLabels: false,  // We handle edge labels in custom edge draw
+    labelFont: '"JetBrains Mono", monospace',
+    labelSize: 10,
+    labelWeight: '500',
+    labelColor: { color: LT.ink },
+    edgeLabelFont: '"JetBrains Mono", monospace',
+    edgeLabelSize: 8,
+    edgeLabelColor: { color: 'rgba(42,37,32,0.35)' },
+    labelRenderedSizeThreshold: 3,
+    defaultNodeColor: LT.tidal,
+    defaultEdgeColor: EDGE_STYLES.hierarchy.color,
+    stagePadding: 60,
+    zoomMin: 0.15,
+    zoomMax: 8,
+
+    // ─── Custom node drawing: circle + dithered shadow ───
+    defaultDrawNodeHover: (ctx, data, settings) => {
+      const { x, y, size, color, label } = data;
+      const zVal = data.z || 1;
+      const shOff = depthOn ? LEVEL_SHADOW[data.level || 'task'] * zVal : 2;
+
+      // Hover glow
+      ctx.beginPath();
+      ctx.arc(x, y, size + 5, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(42,37,32,0.04)';
+      ctx.fill();
+
+      // Dithered shadow
+      drawDitheredShadow(ctx, x, y, size, shOff, 0.18);
+
+      // Main circle
+      ctx.beginPath();
+      ctx.arc(x, y, size, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+
+      // Halftone dots
+      if (halftoneOn && size > 4) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(x, y, size - 0.5, 0, Math.PI * 2);
+        ctx.clip();
+        const step = Math.max(2.5, size * 0.28);
+        const dr = step * 0.2;
+        ctx.fillStyle = 'rgba(255,255,255,0.25)';
+        for (let dy = -size; dy <= size; dy += step) {
+          for (let dx = -size; dx <= size; dx += step) {
+            if (dx * dx + dy * dy < (size - 0.5) * (size - 0.5)) {
+              ctx.beginPath();
+              ctx.arc(x + dx, y + dy, dr, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          }
+        }
+        ctx.restore();
+      }
+
+      // Highlight gloss
+      ctx.beginPath();
+      ctx.arc(x - size * 0.2, y - size * 0.2, size * 0.25, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,0.2)';
+      ctx.fill();
+
+      // Bold outline
+      ctx.beginPath();
+      ctx.arc(x, y, size, 0, Math.PI * 2);
+      ctx.strokeStyle = LT.ink;
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      // Hover ring
+      ctx.beginPath();
+      ctx.arc(x, y, size + 3, 0, Math.PI * 2);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Level tag inside
+      if (size > 8) {
+        ctx.font = `600 ${Math.max(6, size * 0.4)}px "JetBrains Mono", monospace`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        const tag = (data.level || '').slice(0, 4).toUpperCase();
+        ctx.fillText(tag, x, y + 0.5);
+      }
+
+      // Label below
+      if (label) {
+        const fs = Math.max(9, size * 0.6);
+        ctx.font = `600 ${fs}px "JetBrains Mono", monospace`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        const ly = y + size + 6;
+        ctx.fillStyle = LT.parchment;
+        for (let ox = -1; ox <= 1; ox++) for (let oy = -1; oy <= 1; oy++) {
+          if (ox || oy) ctx.fillText(label, x + ox, ly + oy);
+        }
+        ctx.fillStyle = LT.ink;
+        ctx.fillText(label, x, ly);
+      }
+    },
+
+    defaultDrawNodeLabel: (ctx, data, settings) => {
+      const { x, y, size, label } = data;
+      if (!label) return;
+      const fs = Math.max(8, size * 0.55);
+      ctx.font = `500 ${fs}px "JetBrains Mono", monospace`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      const ly = y + size + 4;
+      // Halo
+      ctx.fillStyle = LT.parchment;
+      for (let ox = -1; ox <= 1; ox++) for (let oy = -1; oy <= 1; oy++) {
+        if (ox || oy) ctx.fillText(label, x + ox, ly + oy);
+      }
+      ctx.fillStyle = 'rgba(42,37,32,0.65)';
+      ctx.fillText(label, x, ly);
+    },
+
+    defaultDrawNode: (ctx, data, settings) => {
+      const { x, y, size, color, level } = data;
+      const zVal = data.z || 1;
+      const shOff = depthOn ? LEVEL_SHADOW[level || 'task'] * zVal : 1.5;
+
+      // Dithered shadow
+      drawDitheredShadow(ctx, x, y, size, shOff, 0.15);
+
+      // Main circle
+      ctx.beginPath();
+      ctx.arc(x, y, size, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+
+      // Halftone dots
+      if (halftoneOn && size > 3.5) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(x, y, size - 0.5, 0, Math.PI * 2);
+        ctx.clip();
+        const step = Math.max(2.2, size * 0.28);
+        const dr = step * 0.18;
+        ctx.fillStyle = 'rgba(255,255,255,0.22)';
+        for (let dy = -size; dy <= size; dy += step) {
+          for (let dx = -size; dx <= size; dx += step) {
+            if (dx * dx + dy * dy < (size - 0.5) * (size - 0.5)) {
+              ctx.beginPath();
+              ctx.arc(x + dx, y + dy, dr, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          }
+        }
+        ctx.restore();
+      }
+
+      // Highlight gloss
+      ctx.beginPath();
+      ctx.arc(x - size * 0.2, y - size * 0.2, size * 0.22, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,0.18)';
+      ctx.fill();
+
+      // Outline
+      ctx.beginPath();
+      ctx.arc(x, y, size, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(42,37,32,0.45)';
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
+
+      // Level tag inside (for larger nodes)
+      if (size > 10) {
+        ctx.font = `600 ${Math.max(5, size * 0.38)}px "JetBrains Mono", monospace`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = 'rgba(255,255,255,0.75)';
+        const tag = (level || '').slice(0, 4).toUpperCase();
+        ctx.fillText(tag, x, y + 0.5);
+      }
+    }
+  };
+}
+
+// ─── Init ───
+function initRenderer() {
+  if (sigmaInstance) { sigmaInstance.kill(); }
+
+  graph = buildGraph();
+
+  const container = document.getElementById('sigma-main');
+  container.innerHTML = '';
+
+  sigmaInstance = new Sigma(graph, container, sigmaSettings());
+
+  // Custom edge rendering via afterRender
+  sigmaInstance.on('afterRender', () => {
+    const ctx = sigmaInstance.getCanvases().edges;
+    if (!ctx) return;
+    const context = ctx.getContext('2d');
+    if (!context) return;
+
+    context.clearRect(0, 0, ctx.width, ctx.height);
+
+    graph.forEachEdge((edge, attrs, src, tgt) => {
+      const sourcePos = sigmaInstance.getNodeDisplayData(src);
+      const targetPos = sigmaInstance.getNodeDisplayData(tgt);
+      if (!sourcePos || !targetPos) return;
+
+      // Apply edge reducer state
+      if (hoveredNode) {
+        if (src !== hoveredNode && tgt !== hoveredNode) return;
+      }
+
+      drawEdges(context, sourcePos, targetPos, {
+        ...attrs,
+        size: hoveredNode && (src === hoveredNode || tgt === hoveredNode) ? attrs.size * 1.5 : attrs.size
+      });
+    });
+  });
+
+  // Events
+  sigmaInstance.on('enterNode', ({ node }) => {
+    hoveredNode = node;
+    sigmaInstance.refresh();
+  });
+  sigmaInstance.on('leaveNode', () => {
+    hoveredNode = null;
+    sigmaInstance.refresh();
+  });
+  sigmaInstance.on('clickNode', ({ node }) => {
+    selectedNode = node;
+    showInfo(node);
+  });
+  sigmaInstance.on('clickStage', () => {
+    selectedNode = null;
+    document.getElementById('info').classList.remove('show');
+  });
+
+  // Node/edge reducers for hover dimming
+  sigmaInstance.setSetting('nodeReducer', (node, data) => {
+    const res = { ...data };
+    if (hoveredNode) {
+      if (node === hoveredNode) {
+        res.highlighted = true;
+        res.zIndex = 10;
+      } else if (!graph.neighbors(hoveredNode).includes(node)) {
+        res.color = 'rgba(210,200,185,0.5)';
+        res.label = null;
+      }
+    }
+    return res;
+  });
+
+  sigmaInstance.setSetting('edgeReducer', (edge, data) => {
+    const res = { ...data };
+    if (hoveredNode) {
+      const [src, tgt] = graph.extremities(edge);
+      if (src !== hoveredNode && tgt !== hoveredNode) {
+        res.hidden = true;
+      }
+    }
+    return res;
+  });
+}
+
+// ─── Info Panel ───
+function showInfo(nodeId) {
+  const panel = document.getElementById('info');
+  const attrs = graph.getNodeAttributes(nodeId);
+
+  let h = `<div class="info-head"><h3>${attrs.label}</h3>`;
+  if (attrs.level) h += `<span class="lvl" style="background:${attrs.color}">${attrs.level.replace('_',' ')}</span>`;
+  h += `</div><div class="info-body">`;
+
+  if (attrs.wi) {
+    const wi = attrs.wi;
+    h += `<div class="ir"><span class="ir-k">status</span><span class="ir-v">${wi.status}</span></div>`;
+    h += `<div class="ir"><span class="ir-k">assignee</span><span class="ir-v">${wi.who || '—'}</span></div>`;
+  } else if (attrs.level && !['lane_header', 'sync'].includes(attrs.level)) {
+    h += `<div class="ir"><span class="ir-k">id</span><span class="ir-v">${nodeId}</span></div>`;
+    if (attrs.owner) h += `<div class="ir"><span class="ir-k">owner</span><span class="ir-v">${attrs.owner}</span></div>`;
+    if (attrs.fn) h += `<div class="ir"><span class="ir-k">function</span><span class="ir-v">${attrs.fn}</span></div>`;
+    if (attrs.due) h += `<div class="ir"><span class="ir-k">due</span><span class="ir-v">${attrs.due}</span></div>`;
+    if (attrs.level) h += `<div class="ir"><span class="ir-k">depth</span><span class="ir-v">${attrs.level}</span></div>`;
+
+    const nd = depEdges.filter(d => d.src === nodeId || d.tgt === nodeId);
+    if (nd.length) {
+      h += `<div class="isec">Dependencies</div>`;
+      nd.forEach(d => {
+        const o = d.src === nodeId ? d.tgt : d.src;
+        const dir = d.src === nodeId ? '→' : '←';
+        const label = nodeData.find(n => n.id === o)?.label || o;
+        h += `<div class="wi-r"><span>${dir} ${label}</span><span class="wi-s">${d.kind}</span></div>`;
+      });
+    }
+
+    const wis = workItems.filter(w => w.node === nodeId);
+    if (wis.length) {
+      h += `<div class="isec">Work Items</div>`;
+      wis.forEach(w => {
+        h += `<div class="wi-r ${w.status}"><span>${w.title}</span><span class="wi-s ${w.status}">${w.status}</span></div>`;
+      });
+    }
+  } else {
+    h += `<div class="ir"><span class="ir-k">type</span><span class="ir-v">${attrs.level}</span></div>`;
+  }
+
+  h += `</div>`;
+  panel.innerHTML = h;
+  panel.classList.add('show');
+}
+
+// ─── View Switching ───
+window.setView = function(v) {
+  currentView = v;
+  document.querySelectorAll('.c-btn[data-v]').forEach(b => b.classList.toggle('active', b.dataset.v === v));
+  selectedNode = null;
+  hoveredNode = null;
+  document.getElementById('info').classList.remove('show');
+  initRenderer();
+};
+
+window.togHalf = function() {
+  halftoneOn = !halftoneOn;
+  document.getElementById('tHalf').classList.toggle('on', halftoneOn);
+  sigmaInstance?.refresh();
+};
+
+window.togDepth = function() {
+  depthOn = !depthOn;
+  document.getElementById('tDepth').classList.toggle('on', depthOn);
+  initRenderer();
+};
+
+window.togLabels = function() {
+  labelsOn = !labelsOn;
+  document.getElementById('tLabels').classList.toggle('on', labelsOn);
+  sigmaInstance?.refresh();
+};
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if (e.key === '1') setView('hierarchy');
+  if (e.key === '2') setView('sync');
+  if (e.key === '3') setView('lanes');
+  if (e.key === '4') setView('deps');
+  if (e.key === 'h' || e.key === 'H') togHalf();
+  if (e.key === 'z' || e.key === 'Z') togDepth();
+  if (e.key === 'l' || e.key === 'L') togLabels();
+  if (e.key === 'r' || e.key === 'R') {
+    sigmaInstance?.getCamera().animatedReset({ duration: 300 });
+  }
+  if (e.key === 'Escape') {
+    selectedNode = null;
+    document.getElementById('info').classList.remove('show');
+  }
+});
+
+// ─── Boot ───
+initRenderer();
+
+</script>
+</body>
+</html>
