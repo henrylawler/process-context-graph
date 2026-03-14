@@ -326,24 +326,132 @@
     letter-spacing: 0.2px;
   }
 
-  /* Tooltip */
-  .tip {
+  /* Hover tooltip — follows cursor */
+  .hover-tip {
     position: fixed;
-    font-family: 'Playfair Display', serif;
-    font-size: 12px;
-    font-weight: 600;
-    padding: 4px 9px;
-    border-radius: 3px;
     pointer-events: none;
-    z-index: 50;
+    z-index: 55;
     opacity: 0;
-    transition: opacity 0.1s;
-    white-space: nowrap;
-    background: var(--lt-ink);
-    color: var(--lt-parchment);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    transform: translateY(4px);
+    transition: opacity 0.12s, transform 0.12s;
+    max-width: 300px;
+    background: var(--lt-paper);
+    border: 1px solid var(--lt-bone);
+    border-radius: 6px;
+    box-shadow: 0 8px 28px rgba(26,24,22,0.14), 0 2px 6px rgba(26,24,22,0.06);
+    overflow: hidden;
   }
-  .tip.v { opacity: 1; }
+  .hover-tip.v {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .ht-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--lt-bone);
+    gap: 8px;
+  }
+  .ht-head h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--lt-ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .ht-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7.5px;
+    font-weight: 600;
+    padding: 1.5px 5px;
+    border-radius: 2px;
+    color: #fff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .ht-body {
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .ht-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+  .ht-k {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    color: var(--lt-ash);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    flex-shrink: 0;
+  }
+  .ht-v {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--lt-ink);
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .ht-note {
+    font-size: 10px;
+    color: var(--lt-driftwood);
+    line-height: 1.35;
+    padding-top: 4px;
+    border-top: 1px solid rgba(232,224,208,0.5);
+    margin-top: 2px;
+    font-style: italic;
+  }
+  .ht-wi-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    color: var(--lt-ash);
+    padding-top: 4px;
+    border-top: 1px solid rgba(232,224,208,0.5);
+    margin-top: 2px;
+  }
+  .ht-footer {
+    padding: 5px 12px;
+    background: rgba(42,37,32,0.02);
+    border-top: 1px solid var(--lt-bone);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7px;
+    color: var(--lt-ash);
+    text-align: center;
+    letter-spacing: 0.3px;
+  }
+
+  /* Pinned info panel indicator */
+  .info.pinned {
+    border-color: var(--lt-terracotta);
+  }
+  .info.pinned .info-head {
+    border-bottom-color: var(--lt-terracotta);
+  }
+  .pin-indicator {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7px;
+    color: var(--lt-terracotta);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 4px 14px;
+    background: rgba(184,92,56,0.04);
+    text-align: center;
+    cursor: pointer;
+  }
+  .pin-indicator:hover {
+    background: rgba(184,92,56,0.08);
+  }
 </style>
 </head>
 <body>
@@ -353,7 +461,7 @@
   <div id="sigma-main" class="sigma-container"></div>
 </div>
 
-<div class="tip" id="tip"></div>
+<div class="hover-tip" id="hoverTip"></div>
 
 <div class="ui-layer">
   <div class="hdr">
@@ -445,47 +553,78 @@ const LEVEL_SHADOW = {
 // ─── Domain Data — 6 hierarchy levels ───
 const nodeData = [
   // L1 — Project
-  { id: 'n_root', label: 'OpenClaw', level: 'project', owner: 'Hank', fn: 'Platform', parent: null },
+  { id: 'n_root', label: 'OpenClaw', level: 'project', owner: 'Hank', fn: 'Platform', parent: null,
+    notes: 'Root orchestration platform. Three-pillar arch: Hank (Mac Mini), Jerry (MacBook Pro), Claude Code.' },
 
   // L2 — Board Owners
-  { id: 'n_bux', label: 'UX Engineering', level: 'board_owner', owner: 'Henry', fn: 'UX Eng', parent: 'n_root' },
-  { id: 'n_bdata', label: 'Data Platform', level: 'board_owner', owner: 'Hank', fn: 'Backend', parent: 'n_root' },
-  { id: 'n_bsync', label: 'Vault Sync', level: 'board_owner', owner: 'Hank', fn: 'Sync', parent: 'n_root' },
+  { id: 'n_bux', label: 'UX Engineering', level: 'board_owner', owner: 'Henry', fn: 'UX Eng', parent: 'n_root',
+    notes: 'Owns all user-facing surfaces: workbench, context graph, style system.' },
+  { id: 'n_bdata', label: 'Data Platform', level: 'board_owner', owner: 'Hank', fn: 'Backend', parent: 'n_root',
+    notes: 'Rails backend, API layer, database schema, realtime channels.' },
+  { id: 'n_bsync', label: 'Vault Sync', level: 'board_owner', owner: 'Hank', fn: 'Sync', parent: 'n_root',
+    notes: 'Bidirectional Obsidian vault ↔ Rails DB synchronization.' },
 
   // L3 — Features
-  { id: 'n_fwb', label: '2.5D Workbench', level: 'feature', owner: 'Henry', fn: 'UX Eng', parent: 'n_bux', due: '2026-03-01' },
-  { id: 'n_fgr', label: 'Context Graph', level: 'feature', owner: 'Henry', fn: 'Visualization', parent: 'n_bux' },
-  { id: 'n_fap', label: 'Rails API', level: 'feature', owner: 'Hank', fn: 'Backend', parent: 'n_bdata' },
-  { id: 'n_fdb', label: 'DB Schema', level: 'feature', owner: 'Hank', fn: 'Data', parent: 'n_bdata' },
-  { id: 'n_fsy', label: 'Sync Engine', level: 'feature', owner: 'Hank', fn: 'Sync', parent: 'n_bsync' },
+  { id: 'n_fwb', label: '2.5D Workbench', level: 'feature', owner: 'Henry', fn: 'UX Eng', parent: 'n_bux', due: '2026-03-01',
+    notes: 'Interactive 2.5D project board with hierarchy drilldown and WebGL rendering.' },
+  { id: 'n_fgr', label: 'Context Graph', level: 'feature', owner: 'Henry', fn: 'Visualization', parent: 'n_bux',
+    notes: 'Sigma.js process context graph. Dithered shadows, 4 views, LeveeTech palette.' },
+  { id: 'n_fap', label: 'Rails API', level: 'feature', owner: 'Hank', fn: 'Backend', parent: 'n_bdata',
+    notes: 'RESTful endpoints for nodes, work items, comments, approvals.' },
+  { id: 'n_fdb', label: 'DB Schema', level: 'feature', owner: 'Hank', fn: 'Data', parent: 'n_bdata',
+    notes: 'PostgreSQL schema: projects, nodes, work_items, dependencies, sync_events.' },
+  { id: 'n_fsy', label: 'Sync Engine', level: 'feature', owner: 'Hank', fn: 'Sync', parent: 'n_bsync',
+    notes: 'Vault authoritative for metadata; Rails authoritative for collaboration data.' },
 
   // L4 — Tasks
-  { id: 'n_tcam', label: 'Camera Depth', level: 'task', owner: 'Henry', fn: 'UX', parent: 'n_fwb' },
-  { id: 'n_thier', label: 'Hierarchy Drill', level: 'task', owner: 'Henry', fn: 'UX', parent: 'n_fwb' },
-  { id: 'n_tdith', label: 'Dither Shader', level: 'task', owner: 'Henry', fn: 'Rendering', parent: 'n_fgr' },
-  { id: 'n_tlay', label: 'Layout Engine', level: 'task', owner: 'Henry', fn: 'Graph', parent: 'n_fgr' },
-  { id: 'n_tcrud', label: 'CRUD Endpoints', level: 'task', owner: 'Hank', fn: 'API', parent: 'n_fap' },
-  { id: 'n_trt', label: 'ActionCable', level: 'task', owner: 'Hank', fn: 'Realtime', parent: 'n_fap' },
-  { id: 'n_tmig', label: 'Migrations', level: 'task', owner: 'Hank', fn: 'DB', parent: 'n_fdb' },
-  { id: 'n_tfm', label: 'Frontmatter Parse', level: 'task', owner: 'Hank', fn: 'Sync', parent: 'n_fsy' },
-  { id: 'n_tmb', label: 'Managed Blocks', level: 'task', owner: 'Hank', fn: 'Sync', parent: 'n_fsy' },
+  { id: 'n_tcam', label: 'Camera Depth', level: 'task', owner: 'Henry', fn: 'UX', parent: 'n_fwb',
+    notes: 'Tune camera FOV and orbit for 2.5D perspective depth.' },
+  { id: 'n_thier', label: 'Hierarchy Drill', level: 'task', owner: 'Henry', fn: 'UX', parent: 'n_fwb',
+    notes: 'Expand/collapse hierarchy levels with breadcrumb navigation.' },
+  { id: 'n_tdith', label: 'Dither Shader', level: 'task', owner: 'Henry', fn: 'Rendering', parent: 'n_fgr',
+    notes: 'Canvas 2D stipple shadow with distance-based dot falloff.' },
+  { id: 'n_tlay', label: 'Layout Engine', level: 'task', owner: 'Henry', fn: 'Graph', parent: 'n_fgr',
+    notes: 'Hierarchy, sync, lanes, deps — 4 layout algorithms.' },
+  { id: 'n_tcrud', label: 'CRUD Endpoints', level: 'task', owner: 'Hank', fn: 'API', parent: 'n_fap',
+    notes: 'Standard REST for nodes and work items. Validation + auth.' },
+  { id: 'n_trt', label: 'ActionCable', level: 'task', owner: 'Hank', fn: 'Realtime', parent: 'n_fap',
+    notes: 'WebSocket channel for live node.updated, work_item.moved events.' },
+  { id: 'n_tmig', label: 'Migrations', level: 'task', owner: 'Hank', fn: 'DB', parent: 'n_fdb',
+    notes: 'Initial schema migration. 7 tables, foreign keys, indices.' },
+  { id: 'n_tfm', label: 'Frontmatter Parse', level: 'task', owner: 'Hank', fn: 'Sync', parent: 'n_fsy',
+    notes: 'Parse YAML frontmatter from vault markdown into node records.' },
+  { id: 'n_tmb', label: 'Managed Blocks', level: 'task', owner: 'Hank', fn: 'Sync', parent: 'n_fsy',
+    notes: 'Write work items, comments, approvals inside managed markers.' },
 
   // L5 — Subtasks
-  { id: 'n_sfov', label: 'FOV Slider', level: 'subtask', owner: 'Henry', fn: 'UX', parent: 'n_tcam' },
-  { id: 'n_sorbit', label: 'Orbit Controls', level: 'subtask', owner: 'Henry', fn: 'UX', parent: 'n_tcam' },
-  { id: 'n_sbread', label: 'Breadcrumb Trail', level: 'subtask', owner: 'Henry', fn: 'UX', parent: 'n_thier' },
-  { id: 'n_shalf', label: 'Halftone Variant', level: 'subtask', owner: 'Henry', fn: 'Rendering', parent: 'n_tdith' },
-  { id: 'n_snode', label: 'Node CRUD', level: 'subtask', owner: 'Hank', fn: 'API', parent: 'n_tcrud' },
-  { id: 'n_swi', label: 'WorkItem Lanes', level: 'subtask', owner: 'Hank', fn: 'API', parent: 'n_tcrud' },
-  { id: 'n_syaml', label: 'YAML Parser', level: 'subtask', owner: 'Hank', fn: 'Sync', parent: 'n_tfm' },
-  { id: 'n_swrite', label: 'Block Writer', level: 'subtask', owner: 'Hank', fn: 'Sync', parent: 'n_tmb' },
+  { id: 'n_sfov', label: 'FOV Slider', level: 'subtask', owner: 'Henry', fn: 'UX', parent: 'n_tcam',
+    notes: 'Range slider for field-of-view, 30°–120°.' },
+  { id: 'n_sorbit', label: 'Orbit Controls', level: 'subtask', owner: 'Henry', fn: 'UX', parent: 'n_tcam',
+    notes: 'Mouse drag orbit with inertia and constraints.' },
+  { id: 'n_sbread', label: 'Breadcrumb Trail', level: 'subtask', owner: 'Henry', fn: 'UX', parent: 'n_thier',
+    notes: 'Clickable path showing current drill position.' },
+  { id: 'n_shalf', label: 'Halftone Variant', level: 'subtask', owner: 'Henry', fn: 'Rendering', parent: 'n_tdith',
+    notes: 'Ben-Day dot overlay toggle for Lichtenstein effect.' },
+  { id: 'n_snode', label: 'Node CRUD', level: 'subtask', owner: 'Hank', fn: 'API', parent: 'n_tcrud',
+    notes: 'POST/PATCH/DELETE for nodes with parent validation.' },
+  { id: 'n_swi', label: 'WorkItem Lanes', level: 'subtask', owner: 'Hank', fn: 'API', parent: 'n_tcrud',
+    notes: 'Lane transitions: backlog → next_up → doing → done.' },
+  { id: 'n_syaml', label: 'YAML Parser', level: 'subtask', owner: 'Hank', fn: 'Sync', parent: 'n_tfm',
+    notes: 'js-yaml with schema validation against contract.' },
+  { id: 'n_swrite', label: 'Block Writer', level: 'subtask', owner: 'Hank', fn: 'Sync', parent: 'n_tmb',
+    notes: 'Only writes inside WORKBENCH_MANAGED markers.' },
 
   // L6 — Actions
-  { id: 'n_afov_impl', label: 'Implement slider', level: 'action', owner: 'Henry', fn: 'UX', parent: 'n_sfov' },
-  { id: 'n_afov_test', label: 'Range test', level: 'action', owner: 'Henry', fn: 'QA', parent: 'n_sfov' },
-  { id: 'n_ayaml_spec', label: 'Write spec', level: 'action', owner: 'Hank', fn: 'Docs', parent: 'n_syaml' },
-  { id: 'n_abread_ui', label: 'Render crumbs', level: 'action', owner: 'Henry', fn: 'UX', parent: 'n_sbread' },
-  { id: 'n_anode_val', label: 'Validate params', level: 'action', owner: 'Hank', fn: 'API', parent: 'n_snode' },
+  { id: 'n_afov_impl', label: 'Implement slider', level: 'action', owner: 'Henry', fn: 'UX', parent: 'n_sfov',
+    notes: 'HTML range input with live camera update.' },
+  { id: 'n_afov_test', label: 'Range test', level: 'action', owner: 'Henry', fn: 'QA', parent: 'n_sfov',
+    notes: 'Verify extreme values don\'t clip geometry.' },
+  { id: 'n_ayaml_spec', label: 'Write spec', level: 'action', owner: 'Hank', fn: 'Docs', parent: 'n_syaml',
+    notes: 'Document frontmatter schema in vault contract.' },
+  { id: 'n_abread_ui', label: 'Render crumbs', level: 'action', owner: 'Henry', fn: 'UX', parent: 'n_sbread',
+    notes: 'Horizontal chip trail with click-to-navigate.' },
+  { id: 'n_anode_val', label: 'Validate params', level: 'action', owner: 'Hank', fn: 'API', parent: 'n_snode',
+    notes: 'Strong params + level/parent consistency check.' },
 ];
 
 const depEdges = [
@@ -532,9 +671,10 @@ let halftoneOn = true;
 let depthOn = true;
 let labelsOn = false;
 let hoveredNode = null;
-let selectedNode = null;
+let selectedNode = null;  // pinned node (click to hold)
 let sigmaInstance;
 let graph;
+let mouseX = 0, mouseY = 0;
 
 // ─── Edge styling helpers ───
 const EDGE_STYLES = {
@@ -663,7 +803,7 @@ function buildGraph() {
       g.addNode(n.id, {
         x: p.x, y: p.y, size: sz,
         color: LEVEL_COLOR[n.level],
-        label: n.label, level: n.level, owner: n.owner, fn: n.fn, due: n.due,
+        label: n.label, level: n.level, owner: n.owner, fn: n.fn, due: n.due, notes: n.notes,
         z: p.z, type: 'circle'
       });
     });
@@ -1056,22 +1196,41 @@ function initRenderer() {
     });
   });
 
+  // Track mouse for hover tooltip positioning
+  const sigmaContainer = document.getElementById('sigma-main');
+  sigmaContainer.addEventListener('mousemove', (e) => {
+    mouseX = e.clientX;
+    mouseY = e.clientY;
+    if (hoveredNode) positionHoverTip();
+  });
+
   // Events
   sigmaInstance.on('enterNode', ({ node }) => {
     hoveredNode = node;
+    showHoverTip(node);
     sigmaInstance.refresh();
   });
   sigmaInstance.on('leaveNode', () => {
     hoveredNode = null;
+    hideHoverTip();
     sigmaInstance.refresh();
   });
   sigmaInstance.on('clickNode', ({ node }) => {
-    selectedNode = node;
-    showInfo(node);
+    if (selectedNode === node) {
+      // Clicking same node again unpins it
+      selectedNode = null;
+      document.getElementById('info').classList.remove('show');
+      document.getElementById('info').classList.remove('pinned');
+    } else {
+      selectedNode = node;
+      showInfo(node);
+      document.getElementById('info').classList.add('pinned');
+    }
   });
   sigmaInstance.on('clickStage', () => {
     selectedNode = null;
     document.getElementById('info').classList.remove('show');
+    document.getElementById('info').classList.remove('pinned');
   });
 
   // Node/edge reducers for hover dimming
@@ -1101,10 +1260,11 @@ function initRenderer() {
   });
 }
 
-// ─── Info Panel ───
+// ─── Info Panel (pinned on click) ───
 function showInfo(nodeId) {
   const panel = document.getElementById('info');
   const attrs = graph.getNodeAttributes(nodeId);
+  const nd = nodeData.find(n => n.id === nodeId);
 
   let h = `<div class="info-head"><h3>${attrs.label}</h3>`;
   if (attrs.level) h += `<span class="lvl" style="background:${attrs.color}">${attrs.level.replace('_',' ')}</span>`;
@@ -1121,10 +1281,16 @@ function showInfo(nodeId) {
     if (attrs.due) h += `<div class="ir"><span class="ir-k">due</span><span class="ir-v">${attrs.due}</span></div>`;
     if (attrs.level) h += `<div class="ir"><span class="ir-k">depth</span><span class="ir-v">${attrs.level}</span></div>`;
 
-    const nd = depEdges.filter(d => d.src === nodeId || d.tgt === nodeId);
-    if (nd.length) {
+    // Notes
+    if (nd?.notes || attrs.notes) {
+      h += `<div class="isec">Notes</div>`;
+      h += `<div style="font-size:10px;color:var(--lt-driftwood);line-height:1.4;padding:4px 0">${nd?.notes || attrs.notes}</div>`;
+    }
+
+    const deps = depEdges.filter(d => d.src === nodeId || d.tgt === nodeId);
+    if (deps.length) {
       h += `<div class="isec">Dependencies</div>`;
-      nd.forEach(d => {
+      deps.forEach(d => {
         const o = d.src === nodeId ? d.tgt : d.src;
         const dir = d.src === nodeId ? '→' : '←';
         const label = nodeData.find(n => n.id === o)?.label || o;
@@ -1144,8 +1310,91 @@ function showInfo(nodeId) {
   }
 
   h += `</div>`;
+  h += `<div class="pin-indicator" onclick="unpinInfo()">PINNED · click to close · esc</div>`;
   panel.innerHTML = h;
   panel.classList.add('show');
+}
+
+window.unpinInfo = function() {
+  selectedNode = null;
+  const panel = document.getElementById('info');
+  panel.classList.remove('show');
+  panel.classList.remove('pinned');
+};
+
+// ─── Hover Tooltip ───
+function showHoverTip(nodeId) {
+  const tip = document.getElementById('hoverTip');
+  const attrs = graph.getNodeAttributes(nodeId);
+  const nd = nodeData.find(n => n.id === nodeId);
+
+  let h = `<div class="ht-head"><h4>${attrs.label}</h4>`;
+  if (attrs.level) h += `<span class="ht-badge" style="background:${attrs.color}">${(attrs.level || '').replace('_',' ')}</span>`;
+  h += `</div><div class="ht-body">`;
+
+  if (attrs.wi) {
+    // Work item in lanes view
+    const wi = attrs.wi;
+    h += `<div class="ht-row"><span class="ht-k">Status</span><span class="ht-v">${wi.status.replace('_',' ')}</span></div>`;
+    h += `<div class="ht-row"><span class="ht-k">Assignee</span><span class="ht-v">${wi.who || 'unassigned'}</span></div>`;
+  } else if (attrs.level && !['lane_header', 'sync'].includes(attrs.level)) {
+    if (attrs.owner) h += `<div class="ht-row"><span class="ht-k">Owner</span><span class="ht-v">${attrs.owner}</span></div>`;
+    if (attrs.fn) h += `<div class="ht-row"><span class="ht-k">Function</span><span class="ht-v">${attrs.fn}</span></div>`;
+    if (attrs.due) h += `<div class="ht-row"><span class="ht-k">Due</span><span class="ht-v">${attrs.due}</span></div>`;
+
+    // Show notes if available
+    if (nd?.notes) {
+      h += `<div class="ht-note">${nd.notes}</div>`;
+    }
+
+    // Work item count
+    const wis = workItems.filter(w => w.node === nodeId);
+    if (wis.length) {
+      const doing = wis.filter(w => w.status === 'doing').length;
+      const done = wis.filter(w => w.status === 'done').length;
+      h += `<div class="ht-wi-count">${wis.length} work items · ${doing} doing · ${done} done</div>`;
+    }
+
+    // Dep count
+    const deps = depEdges.filter(d => d.src === nodeId || d.tgt === nodeId);
+    if (deps.length) {
+      h += `<div class="ht-wi-count">${deps.length} dependenc${deps.length === 1 ? 'y' : 'ies'}</div>`;
+    }
+  } else {
+    // Sync view node
+    h += `<div class="ht-row"><span class="ht-k">Type</span><span class="ht-v">${attrs.level || 'system'}</span></div>`;
+  }
+
+  h += `</div>`;
+  h += `<div class="ht-footer">click to pin detail panel</div>`;
+
+  tip.innerHTML = h;
+  tip.classList.add('v');
+  positionHoverTip();
+}
+
+function positionHoverTip() {
+  const tip = document.getElementById('hoverTip');
+  const w = tip.offsetWidth;
+  const h = tip.offsetHeight;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  let tx = mouseX + 16;
+  let ty = mouseY + 16;
+
+  // Keep on screen
+  if (tx + w > vw - 12) tx = mouseX - w - 12;
+  if (ty + h > vh - 12) ty = mouseY - h - 12;
+  if (tx < 12) tx = 12;
+  if (ty < 12) ty = 12;
+
+  tip.style.left = tx + 'px';
+  tip.style.top = ty + 'px';
+}
+
+function hideHoverTip() {
+  document.getElementById('hoverTip').classList.remove('v');
 }
 
 // ─── View Switching ───
@@ -1191,6 +1440,7 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     selectedNode = null;
     document.getElementById('info').classList.remove('show');
+    document.getElementById('info').classList.remove('pinned');
   }
 });
 
