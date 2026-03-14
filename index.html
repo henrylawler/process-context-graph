@@ -1796,10 +1796,10 @@ let mouseX = 0, mouseY = 0;
 
 // ─── Edge styling helpers ───
 const EDGE_STYLES = {
-  hierarchy: { color: 'rgba(201,184,150,0.30)', size: 1.2 },
-  depends_on: { color: 'rgba(184,92,56,0.45)', size: 1.8 },
-  blocks: { color: 'rgba(179,66,51,0.55)', size: 2.8 },
-  sync_flow: { color: 'rgba(94,139,126,0.45)', size: 2 }
+  hierarchy: { color: 'rgba(168,155,132,0.55)', size: 1 },
+  depends_on: { color: 'rgba(194,110,86,0.50)', size: 1.2 },
+  blocks: { color: 'rgba(179,66,51,0.55)', size: 1.8 },
+  sync_flow: { color: 'rgba(94,139,126,0.45)', size: 1.2 }
 };
 
 // ─── Dithered shadow renderer ───
@@ -1944,183 +1944,217 @@ function intentLayout() {
 }
 
 // ─── Mondrian Treemap ───
-function mondrianTreemap(container, width, height) {
-  const canvas = document.createElement('canvas');
-  canvas.width = width * 2; canvas.height = height * 2;
-  canvas.style.width = width + 'px'; canvas.style.height = height + 'px';
-  container.appendChild(canvas);
-  const ctx = canvas.getContext('2d');
-  ctx.scale(2, 2);
-  const allRects = [];
+function mondrianTreemap(container) {
+  container.innerHTML = '';
+  const p = getPalette();
   const isDark = document.body.classList.contains('dark');
   const levelNum = { project: 1, board_owner: 2, feature: 3, task: 4, subtask: 5, action: 6 };
+  const levelOrder = ['project', 'board_owner', 'feature', 'task', 'subtask', 'action'];
+  const voidColor = isDark ? '#1A1816' : p.bone;
+  const deepVoid = isDark ? '#000' : '#1A1816';
+  const pageBg = isDark ? p.deep : p.paper;
+  const textLight = 'rgba(255,255,255,0.92)';
+  const subtitleLight = 'rgba(255,255,255,0.55)';
+  const gap = 3;
 
-  // Count leaf descendants for weight
+  // Count descendants for weight
   function countLeaves(id) {
-    const children = nodeData.filter(n => n.parent === id);
-    if (children.length === 0) return 1;
-    return children.reduce((sum, c) => sum + countLeaves(c.id), 0);
+    const ch = nodeData.filter(n => n.parent === id);
+    return ch.length === 0 ? 1 : ch.reduce((s, c) => s + countLeaves(c.id), 0);
   }
 
-  // Squarified row layout
-  function squarify(items, x, y, w, h) {
-    if (items.length === 0 || w <= 0 || h <= 0) return [];
-    const rects = [];
-    const total = items.reduce((s, n) => s + n.weight, 0);
-    if (total <= 0) return [];
-    let cx = x, cy = y;
-    let remW = w, remH = h;
-    let remaining = [...items];
+  // Build page wrapper (DOM-based for crisp text)
+  const page = document.createElement('div');
+  page.style.cssText = `position:absolute;inset:0;overflow-y:auto;background:${pageBg};padding:24px 28px;font-family:'Playfair Display',serif;`;
+  container.appendChild(page);
 
-    while (remaining.length > 0) {
-      const isWide = remW >= remH;
-      const shortSide = isWide ? remH : remW;
-      if (shortSide <= 0) break;
-      const remTotal = remaining.reduce((s, n) => s + n.weight, 0);
-
-      // Build best row
-      let row = [remaining[0]];
-      let rowSum = remaining[0].weight;
-      remaining = remaining.slice(1);
-
-      function worstRatio(rw, sum, side) {
-        let worst = 0;
-        rw.forEach(n => {
-          const area = (n.weight / remTotal) * remW * remH;
-          const rowArea = (sum / remTotal) * remW * remH;
-          const rowLen = rowArea / side;
-          const nodeLen = area / rowLen;
-          const ratio = Math.max(rowLen / nodeLen, nodeLen / rowLen);
-          worst = Math.max(worst, ratio);
-        });
-        return worst;
-      }
-
-      while (remaining.length > 0) {
-        const oldWorst = worstRatio(row, rowSum, shortSide);
-        const newRow = [...row, remaining[0]];
-        const newSum = rowSum + remaining[0].weight;
-        const newWorst = worstRatio(newRow, newSum, shortSide);
-        if (newWorst > oldWorst) break;
-        row.push(remaining[0]);
-        rowSum += remaining[0].weight;
-        remaining = remaining.slice(1);
-      }
-
-      // Lay out the row
-      const rowFrac = rowSum / remTotal;
-      const rowDim = isWide ? remW * rowFrac : remH * rowFrac;
-      let offset = 0;
-      row.forEach(n => {
-        const frac = n.weight / rowSum;
-        const rw = isWide ? rowDim : remW;
-        const rh = isWide ? remH : rowDim;
-        const nw = isWide ? rowDim : remW * frac;
-        const nh = isWide ? remH * frac : rowDim;
-        const rx = isWide ? cx : cx + offset;
-        const ry = isWide ? cy + offset : cy;
-        rects.push({ ...n, rx, ry, rw: nw, rh: nh });
-        offset += isWide ? remH * frac : remW * frac;
-      });
-
-      if (isWide) { cx += rowDim; remW -= rowDim; }
-      else { cy += rowDim; remH -= rowDim; }
-    }
-    return rects;
-  }
-
-  // Recursive treemap: layout children of parentId in (x,y,w,h)
-  function layoutNode(parentId, x, y, w, h, depth) {
-    const children = nodeData.filter(n => n.parent === parentId);
-    if (children.length === 0) return;
-
-    const items = children.map(n => ({
-      id: n.id, label: n.label, level: n.level, owner: n.owner, fn: n.fn,
-      intent: n.intent, notes: n.notes, node: n,
-      weight: countLeaves(n.id)
-    })).sort((a, b) => b.weight - a.weight);
-
-    const padding = Math.max(2, 4 - depth);
-    const rects = squarify(items, x + padding, y + padding, w - padding * 2, h - padding * 2);
-
-    rects.forEach(r => {
-      allRects.push({ ...r, depth });
-      // Recurse into children
-      const grandchildren = nodeData.filter(n => n.parent === r.id);
-      if (grandchildren.length > 0 && r.rw > 30 && r.rh > 30) {
-        // Reserve header space for label
-        const headerH = r.rh > 50 ? 22 : 0;
-        layoutNode(r.id, r.rx, r.ry + headerH, r.rw, r.rh - headerH, depth + 1);
-      }
-    });
-  }
-
-  // Start from root
+  // Title header
+  const header = document.createElement('div');
+  header.style.cssText = 'margin-bottom:16px;';
   const root = nodeData.find(n => !n.parent);
-  if (!root) return;
+  header.innerHTML = `
+    <div style="font-size:26px;font-weight:700;color:${isDark ? '#e8e0d0' : p.ink};letter-spacing:-0.5px">Process Context Graph</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:${isDark ? '#9a9590' : p.ash};margin-top:4px;text-transform:uppercase;letter-spacing:1.5px">TECHNOCRAT MONDRIAN · ${root?.label || 'project'} · hierarchy view</div>
+  `;
+  page.appendChild(header);
 
-  // Add root rect
-  allRects.push({
-    id: root.id, label: root.label, level: root.level, owner: root.owner,
-    fn: root.fn, intent: root.intent, notes: root.notes, node: root,
-    weight: countLeaves(root.id), rx: 4, ry: 4, rw: width - 8, rh: height - 8, depth: 0
+  // Grid container
+  const grid = document.createElement('div');
+  grid.style.cssText = `position:relative;width:100%;border-radius:4px;overflow:hidden;background:${voidColor};`;
+  page.appendChild(grid);
+
+  // Collect nodes by level
+  const byLevel = {};
+  levelOrder.forEach(lv => { byLevel[lv] = nodeData.filter(n => n.level === lv); });
+
+  // Calculate total weight per level for row height proportioning
+  const levelWeights = {};
+  levelOrder.forEach(lv => {
+    levelWeights[lv] = byLevel[lv].reduce((s, n) => s + countLeaves(n.id), 0);
   });
+  const totalWeight = Object.values(levelWeights).reduce((s, w) => s + w, 0) || 1;
 
-  layoutNode(root.id, 4, 4, width - 8, height - 8, 1);
+  // Determine grid height based on container
+  const availH = container.clientHeight - 120; // account for header + legend
+  const gridH = Math.max(500, availH);
+  grid.style.height = gridH + 'px';
 
-  // Draw back-to-front (deepest first for overlapping, but we want parent bg then child on top)
-  // Sort by depth ascending so parents draw first
-  allRects.sort((a, b) => a.depth - b.depth);
+  // Layout: root gets left column, remaining levels get horizontal rows on the right
+  const rootNode = byLevel.project?.[0];
+  const hasRoot = !!rootNode;
+  const rootFrac = hasRoot ? Math.max(0.3, Math.min(0.45, countLeaves(rootNode.id) / totalWeight * 1.8)) : 0;
+  const rootW = hasRoot ? Math.floor(gridH * rootFrac * 1.2) : 0;
+  const rightW = grid.clientWidth || (container.clientWidth - 56);
 
-  const gap = 1;
-  allRects.forEach(r => {
-    const color = getNodeColor(r.node);
+  // We'll use absolute positioning within the grid
+  const allCells = []; // for click detection
 
-    // Fill with slightly adjusted opacity for depth
-    ctx.fillStyle = color;
-    ctx.globalAlpha = 1 - (r.depth * 0.05);
-    ctx.fillRect(r.rx + gap, r.ry + gap, r.rw - gap * 2, r.rh - gap * 2);
-    ctx.globalAlpha = 1;
+  // Helper: create a cell div
+  function makeCell(node, x, y, w, h, isVoid) {
+    const cell = document.createElement('div');
+    const color = isVoid ? (h > 60 ? voidColor : deepVoid) : getNodeColor(node);
+    cell.style.cssText = `
+      position:absolute;left:${x}px;top:${y}px;width:${w}px;height:${h}px;
+      background:${color};
+      box-sizing:border-box;
+      display:flex;flex-direction:column;justify-content:center;align-items:flex-start;
+      padding:12px 16px;overflow:hidden;cursor:${isVoid ? 'default' : 'pointer'};
+    `;
 
-    // Border
-    ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)';
-    ctx.lineWidth = Math.max(0.5, 2 - r.depth * 0.3);
-    ctx.strokeRect(r.rx + gap, r.ry + gap, r.rw - gap * 2, r.rh - gap * 2);
-
-    // Label if rect is large enough
-    if (r.rw > 50 && r.rh > 24) {
-      const fontSize = Math.min(14, Math.max(8, r.rw / 10));
-      ctx.fillStyle = isDark ? '#fff' : (r.depth === 0 ? '#fff' : '#fff');
-      ctx.font = `600 ${fontSize}px 'Playfair Display', serif`;
-      ctx.textBaseline = 'top';
-      // Shadow for readability
-      ctx.shadowColor = 'rgba(0,0,0,0.5)';
-      ctx.shadowBlur = 3;
-      ctx.fillText(r.label, r.rx + 6, r.ry + 5, r.rw - 12);
-      ctx.shadowBlur = 0;
+    if (!isVoid && node) {
+      // Label
+      const nameEl = document.createElement('div');
+      const fontSize = Math.min(18, Math.max(11, w / 12));
+      nameEl.style.cssText = `font-family:'Playfair Display',serif;font-weight:600;font-size:${fontSize}px;color:${textLight};line-height:1.2;text-shadow:0 1px 3px rgba(0,0,0,0.3);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;`;
+      nameEl.textContent = node.label;
+      cell.appendChild(nameEl);
 
       // Level subtitle
-      if (r.rh > 40 && r.rw > 70) {
-        ctx.font = `500 ${Math.min(8, fontSize * 0.65)}px 'JetBrains Mono', monospace`;
-        ctx.fillStyle = 'rgba(255,255,255,0.7)';
-        ctx.fillText(`L${levelNum[r.level] || '?'} · ${(r.level || '').replace('_', ' ').toUpperCase()}`, r.rx + 6, r.ry + 5 + fontSize + 2, r.rw - 12);
+      if (h > 40 && w > 60) {
+        const subEl = document.createElement('div');
+        subEl.style.cssText = `font-family:'JetBrains Mono',monospace;font-size:${Math.min(9, fontSize * 0.55)}px;color:${subtitleLight};margin-top:3px;text-transform:uppercase;letter-spacing:0.5px;`;
+        subEl.textContent = `L${levelNum[node.level] || '?'} · ${(node.level || '').replace('_', ' ').toUpperCase()}`;
+        cell.appendChild(subEl);
       }
+
+      cell.addEventListener('click', () => {
+        // Remove previous selection
+        grid.querySelectorAll('.mondrian-selected').forEach(el => {
+          el.classList.remove('mondrian-selected');
+          el.style.outline = '';
+          el.style.outlineOffset = '';
+        });
+        cell.classList.add('mondrian-selected');
+        cell.style.outline = '2px dashed #4A90D9';
+        cell.style.outlineOffset = '-3px';
+        selectedNode = node.id;
+        showMondrianInfo({ id: node.id, label: node.label, level: node.level, owner: node.owner, fn: node.fn, intent: node.intent, notes: node.notes, node });
+      });
+
+      allCells.push({ el: cell, node });
     }
+
+    grid.appendChild(cell);
+    return cell;
+  }
+
+  // Layout algorithm: level-banded treemap
+  // Root takes the left column spanning full height
+  // Remaining levels get horizontal bands
+
+  // First pass: calculate actual grid width after mount
+  requestAnimationFrame(() => {
+    const gw = grid.clientWidth;
+    const rw = hasRoot ? Math.min(Math.floor(gw * rootFrac), gw * 0.45) : 0;
+    const rightX = rw + gap;
+    const rightWidth = gw - rightX;
+
+    // Place root
+    if (hasRoot) {
+      makeCell(rootNode, 0, 0, rw, gridH, false);
+    }
+
+    // Remaining levels (skip project)
+    const remainLevels = levelOrder.filter(lv => lv !== 'project' && byLevel[lv].length > 0);
+
+    // Calculate row heights proportional to node count at each level
+    // But give more height to levels with fewer, larger nodes (boards get more than actions)
+    const levelHeightWeights = remainLevels.map(lv => {
+      const count = byLevel[lv].length;
+      const depthIdx = levelOrder.indexOf(lv);
+      // Higher levels get proportionally more height
+      return { lv, weight: count * Math.max(1, 4 - depthIdx * 0.5) };
+    });
+    const totalHW = levelHeightWeights.reduce((s, l) => s + l.weight, 0) || 1;
+
+    let curY = 0;
+    remainLevels.forEach((lv, li) => {
+      const hw = levelHeightWeights.find(l => l.lv === lv);
+      const rowH = Math.floor((hw.weight / totalHW) * (gridH - (remainLevels.length - 1) * gap));
+      const nodes = byLevel[lv];
+      const nodeCount = nodes.length;
+
+      // Lay out nodes in this row as equal-width cells
+      // Add void cells to fill remaining space if needed
+      const maxPerRow = Math.min(nodeCount, Math.max(3, Math.floor(rightWidth / 100)));
+      const rows = Math.ceil(nodeCount / maxPerRow);
+      const subRowH = Math.floor((rowH - (rows - 1) * gap) / rows);
+
+      nodes.forEach((nd, ni) => {
+        const rowIdx = Math.floor(ni / maxPerRow);
+        const colIdx = ni % maxPerRow;
+        const nodesInThisRow = Math.min(maxPerRow, nodeCount - rowIdx * maxPerRow);
+        const cellW = Math.floor((rightWidth - (nodesInThisRow - 1) * gap) / nodesInThisRow);
+        const cx = rightX + colIdx * (cellW + gap);
+        const cy = curY + rowIdx * (subRowH + gap);
+
+        makeCell(nd, cx, cy, cellW, subRowH, false);
+      });
+
+      // Add void cells for remaining space in incomplete rows
+      const lastRowNodes = nodeCount % maxPerRow;
+      if (lastRowNodes > 0 && rows > 0) {
+        const lastRowIdx = rows - 1;
+        const filledW = lastRowNodes * (Math.floor((rightWidth - (maxPerRow - 1) * gap) / maxPerRow) + gap);
+        const voidW = rightWidth - filledW + gap;
+        if (voidW > 10) {
+          const vy = curY + lastRowIdx * (subRowH + gap);
+          makeCell(null, rightX + filledW - gap, vy, voidW, subRowH, true);
+        }
+      }
+
+      // Add void below each level band if there's space
+      if (rows === 1 && rowH > subRowH + gap) {
+        const voidH = rowH - subRowH - gap;
+        if (voidH > 5) {
+          makeCell(null, rightX, curY + subRowH + gap, rightWidth, voidH, true);
+        }
+      }
+
+      curY += rowH + gap;
+    });
   });
 
-  // Store rects for click detection (reverse so topmost children hit first)
-  const clickRects = [...allRects].sort((a, b) => b.depth - a.depth);
-  canvas.style.cursor = 'pointer';
-  canvas.addEventListener('click', (e) => {
-    const rect = canvas.getBoundingClientRect();
-    const lx = e.clientX - rect.left;
-    const ly = e.clientY - rect.top;
-    const hit = clickRects.find(r => lx >= r.rx && lx <= r.rx + r.rw && ly >= r.ry && ly <= r.ry + r.rh);
-    if (hit) {
-      selectedNode = hit.id;
-      showMondrianInfo(hit);
-    }
+  // Legend
+  const legend = document.createElement('div');
+  legend.style.cssText = `display:flex;align-items:center;gap:16px;margin-top:12px;flex-wrap:wrap;padding:4px 0;`;
+  const legendItems = [
+    { label: 'Project', color: p.l1 },
+    { label: 'Board', color: p.l2 },
+    { label: 'Feature', color: p.l3 },
+    { label: 'Task', color: p.l4 },
+    { label: 'Subtask', color: p.l5 },
+    { label: 'Action', color: p.l6 },
+    { label: 'Accent', color: p.accent2 },
+    { label: 'Void', color: isDark ? '#333' : p.bone },
+  ];
+  legendItems.forEach(li => {
+    const item = document.createElement('div');
+    item.style.cssText = 'display:flex;align-items:center;gap:5px;';
+    item.innerHTML = `<div style="width:12px;height:12px;background:${li.color};border-radius:1px;border:1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}"></div><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:${isDark ? '#9a9590' : p.ash}">${li.label}</span>`;
+    legend.appendChild(item);
   });
+  page.appendChild(legend);
 }
 
 function showMondrianInfo(rect) {
@@ -2333,15 +2367,27 @@ function drawEdges(ctx, sourceData, targetData, edgeData) {
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // Arrowhead
-  const headLen = Math.min(10, edgeSize * 4);
-  ctx.beginPath();
-  ctx.moveTo(x2, y2);
-  ctx.lineTo(x2 - headLen * Math.cos(angle - 0.3), y2 - headLen * Math.sin(angle - 0.3));
-  ctx.lineTo(x2 - headLen * Math.cos(angle + 0.3), y2 - headLen * Math.sin(angle + 0.3));
-  ctx.closePath();
-  ctx.fillStyle = color;
-  ctx.fill();
+  // Diamond connectors ONLY on hierarchy edges (Paper style)
+  if (edgeKind === 'hierarchy' || !edgeKind) {
+    const dSize = 3.5;
+    // Diamond at source
+    ctx.beginPath();
+    ctx.moveTo(x1, y1 - dSize);
+    ctx.lineTo(x1 + dSize, y1);
+    ctx.lineTo(x1, y1 + dSize);
+    ctx.lineTo(x1 - dSize, y1);
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.fill();
+    // Diamond at target
+    ctx.beginPath();
+    ctx.moveTo(x2, y2 - dSize);
+    ctx.lineTo(x2 + dSize, y2);
+    ctx.lineTo(x2, y2 + dSize);
+    ctx.lineTo(x2 - dSize, y2);
+    ctx.closePath();
+    ctx.fill();
+  }
 
   // Edge label
   if (edgeData.label && labelsOn) {
@@ -2350,9 +2396,13 @@ function drawEdges(ctx, sourceData, targetData, edgeData) {
     ctx.font = '500 8px "JetBrains Mono", monospace';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+    const p = getPalette();
+    const bgColor = isDarkTheme ? p.deep : p.paper;
     const tw = ctx.measureText(edgeData.label).width;
-    ctx.fillStyle = 'rgba(250,247,240,0.88)';
+    ctx.fillStyle = bgColor;
+    ctx.globalAlpha = 0.88;
     ctx.fillRect(mx - tw / 2 - 4, my - 7, tw + 8, 14);
+    ctx.globalAlpha = 1;
     ctx.fillStyle = color;
     ctx.fillText(edgeData.label, mx, my);
   }
@@ -2380,173 +2430,177 @@ function sigmaSettings() {
     zoomMin: 0.15,
     zoomMax: 8,
 
-    // ─── Custom node drawing: circle + dithered shadow ───
+    // ─── Level abbreviations (matching Paper design) ───
+    // PROJECT, BOARD, FEAT, TASK, SUB, ACTION
+
+    // ─── Custom node drawing: Paper-style circles ───
     defaultDrawNodeHover: (ctx, data, settings) => {
       const { x, y, size, color, label } = data;
-      const zVal = data.z || 1;
-      const shOff = depthOn ? LEVEL_SHADOW[data.level || 'task'] * zVal : 2;
+      const p = getPalette();
+      const lvl = data.level || 'task';
+      const LEVEL_ABBR = { project: 'PROJECT', board_owner: 'BOARD', feature: 'FEAT', task: 'TASK', subtask: 'SUB', action: 'ACTION' };
 
-      // Hover glow
+      // Hover glow ring
       ctx.beginPath();
-      ctx.arc(x, y, size + 5, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(42,37,32,0.04)';
-      ctx.fill();
+      ctx.arc(x, y, size + 4, 0, Math.PI * 2);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.stroke();
 
-      // Dithered shadow
-      drawDitheredShadow(ctx, x, y, size, shOff, 0.18);
+      // Dithered shadow (subtle)
+      if (depthOn) {
+        const zVal = data.z || 1;
+        const shOff = LEVEL_SHADOW[lvl] * zVal;
+        drawDitheredShadow(ctx, x, y, size, shOff, isDarkTheme ? 0.2 : 0.12);
+      }
 
-      // Main circle
+      // Darker inner circle (Paper style — darker shade behind the main fill)
       ctx.beginPath();
       ctx.arc(x, y, size, 0, Math.PI * 2);
       ctx.fillStyle = color;
       ctx.fill();
 
-      // Halftone dots
+      // Halftone dots (only when toggled)
       if (halftoneOn && size > 4) {
         ctx.save();
-        ctx.beginPath();
-        ctx.arc(x, y, size - 0.5, 0, Math.PI * 2);
-        ctx.clip();
-        const step = Math.max(2.5, size * 0.28);
-        const dr = step * 0.2;
-        ctx.fillStyle = 'rgba(255,255,255,0.25)';
-        for (let dy = -size; dy <= size; dy += step) {
-          for (let dx = -size; dx <= size; dx += step) {
-            if (dx * dx + dy * dy < (size - 0.5) * (size - 0.5)) {
-              ctx.beginPath();
-              ctx.arc(x + dx, y + dy, dr, 0, Math.PI * 2);
-              ctx.fill();
-            }
-          }
-        }
+        ctx.beginPath(); ctx.arc(x, y, size - 0.5, 0, Math.PI * 2); ctx.clip();
+        const step = Math.max(2.5, size * 0.28); const dr = step * 0.2;
+        ctx.fillStyle = isDarkTheme ? 'rgba(255,255,255,0.16)' : 'rgba(255,255,255,0.22)';
+        for (let dy = -size; dy <= size; dy += step)
+          for (let dx = -size; dx <= size; dx += step)
+            if (dx*dx + dy*dy < (size-0.5)*(size-0.5)) { ctx.beginPath(); ctx.arc(x+dx, y+dy, dr, 0, Math.PI*2); ctx.fill(); }
         ctx.restore();
       }
 
-      // Highlight gloss
-      ctx.beginPath();
-      ctx.arc(x - size * 0.2, y - size * 0.2, size * 0.25, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(255,255,255,0.2)';
-      ctx.fill();
-
-      // Bold outline
+      // Border ring (Paper: solid ink stroke)
       ctx.beginPath();
       ctx.arc(x, y, size, 0, Math.PI * 2);
-      ctx.strokeStyle = isDarkTheme ? getPalette().sand : getPalette().ink;
-      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = isDarkTheme ? p.sand : p.ink;
+      ctx.lineWidth = Math.max(2, size * 0.08);
       ctx.stroke();
 
-      // Hover ring
-      ctx.beginPath();
-      ctx.arc(x, y, size + 3, 0, Math.PI * 2);
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-
-      // Level tag inside
-      if (size > 8) {
-        ctx.font = `600 ${Math.max(6, size * 0.4)}px "JetBrains Mono", monospace`;
+      // Level abbreviation inside (Paper: cream text)
+      if (size > 6) {
+        const tag = LEVEL_ABBR[lvl] || lvl.toUpperCase();
+        const fs = Math.max(6, Math.min(size * 0.48, 14));
+        ctx.font = `700 ${fs}px "JetBrains Mono", monospace`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillStyle = 'rgba(255,255,255,0.85)';
-        const tag = (data.level || '').slice(0, 4).toUpperCase();
+        ctx.fillStyle = p.paper; // FAF7F0 cream
         ctx.fillText(tag, x, y + 0.5);
       }
 
-      // Label below
+      // Label below (Playfair Display, multi-line word wrap)
       if (label) {
-        const fs = Math.max(9, size * 0.6);
-        ctx.font = `600 ${fs}px "JetBrains Mono", monospace`;
+        const fs = Math.max(9, Math.min(size * 0.55, 13));
+        ctx.font = `600 ${fs}px "Playfair Display", serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
-        const ly = y + size + 6;
-        const hp = getPalette();
-        ctx.fillStyle = isDarkTheme ? hp.deep : hp.parchment;
-        for (let ox = -1; ox <= 1; ox++) for (let oy = -1; oy <= 1; oy++) {
-          if (ox || oy) ctx.fillText(label, x + ox, ly + oy);
-        }
-        ctx.fillStyle = isDarkTheme ? hp.sand : hp.ink;
-        ctx.fillText(label, x, ly);
+        const ly = y + size + 8;
+        const maxW = size * 2.5;
+        // Word wrap
+        const words = label.split(' ');
+        const lines = [];
+        let cur = '';
+        words.forEach(w => {
+          const test = cur ? cur + ' ' + w : w;
+          if (ctx.measureText(test).width > maxW && cur) { lines.push(cur); cur = w; }
+          else cur = test;
+        });
+        if (cur) lines.push(cur);
+
+        const haloColor = isDarkTheme ? p.deep : p.paper;
+        const textColor = isDarkTheme ? p.sand : p.ink;
+        lines.forEach((line, i) => {
+          const yy = ly + i * (fs + 2);
+          ctx.fillStyle = haloColor;
+          for (let ox = -1; ox <= 1; ox++) for (let oy = -1; oy <= 1; oy++)
+            if (ox || oy) ctx.fillText(line, x + ox, yy + oy);
+          ctx.fillStyle = textColor;
+          ctx.fillText(line, x, yy);
+        });
       }
     },
 
     defaultDrawNodeLabel: (ctx, data, settings) => {
       const { x, y, size, label } = data;
       if (!label) return;
-      const fs = Math.max(8, size * 0.55);
-      ctx.font = `500 ${fs}px "JetBrains Mono", monospace`;
+      const p = getPalette();
+      const fs = Math.max(8, Math.min(size * 0.5, 12));
+      ctx.font = `600 ${fs}px "Playfair Display", serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
-      const ly = y + size + 4;
-      const p = getPalette();
-      const haloColor = isDarkTheme ? p.deep : p.parchment;
-      const textColor = isDarkTheme ? `rgba(201,184,150,0.7)` : `rgba(42,37,32,0.65)`;
-      // Halo
-      ctx.fillStyle = haloColor;
-      for (let ox = -1; ox <= 1; ox++) for (let oy = -1; oy <= 1; oy++) {
-        if (ox || oy) ctx.fillText(label, x + ox, ly + oy);
-      }
-      ctx.fillStyle = textColor;
-      ctx.fillText(label, x, ly);
+      const maxW = size * 2.5;
+      const ly = y + size + 6;
+      // Word wrap
+      const words = label.split(' ');
+      const lines = [];
+      let cur = '';
+      words.forEach(w => {
+        const test = cur ? cur + ' ' + w : w;
+        if (ctx.measureText(test).width > maxW && cur) { lines.push(cur); cur = w; }
+        else cur = test;
+      });
+      if (cur) lines.push(cur);
+
+      const haloColor = isDarkTheme ? p.deep : p.paper;
+      const textColor = isDarkTheme ? `rgba(201,184,150,0.8)` : `rgba(42,37,32,0.7)`;
+      lines.forEach((line, i) => {
+        const yy = ly + i * (fs + 2);
+        ctx.fillStyle = haloColor;
+        for (let ox = -1; ox <= 1; ox++) for (let oy = -1; oy <= 1; oy++)
+          if (ox || oy) ctx.fillText(line, x + ox, yy + oy);
+        ctx.fillStyle = textColor;
+        ctx.fillText(line, x, yy);
+      });
     },
 
     defaultDrawNode: (ctx, data, settings) => {
       const { x, y, size, color, level } = data;
-      const zVal = data.z || 1;
-      const shOff = depthOn ? LEVEL_SHADOW[level || 'task'] * zVal : 1.5;
+      const p = getPalette();
+      const LEVEL_ABBR = { project: 'PROJECT', board_owner: 'BOARD', feature: 'FEAT', task: 'TASK', subtask: 'SUB', action: 'ACTION' };
       const shapeName = getNodeShape(level, data.shape);
       const drawShape = SHAPE_LIBRARY[shapeName] || SHAPE_LIBRARY.circle;
-      const p = getPalette();
-      const outlineColor = isDarkTheme ? `rgba(201,184,150,0.45)` : `rgba(42,37,32,0.45)`;
-      const halftoneColor = isDarkTheme ? `rgba(255,255,255,0.16)` : `rgba(255,255,255,0.22)`;
-      const shadowAlpha = isDarkTheme ? 0.25 : 0.15;
 
-      // Dithered shadow
-      drawDitheredShadow(ctx, x, y, size, shOff, shadowAlpha);
+      // Dithered shadow (when depth toggle is on)
+      if (depthOn) {
+        const zVal = data.z || 1;
+        const shOff = LEVEL_SHADOW[level || 'task'] * zVal;
+        drawDitheredShadow(ctx, x, y, size, shOff, isDarkTheme ? 0.2 : 0.1);
+      }
 
-      // Main shape
+      // Main shape fill
       drawShape(ctx, x, y, size);
       ctx.fillStyle = color;
       ctx.fill();
 
-      // Halftone dots
+      // Halftone dots (only when toggled on)
       if (halftoneOn && size > 3.5) {
         ctx.save();
         drawShape(ctx, x, y, size - 0.5);
         ctx.clip();
-        const step = Math.max(2.2, size * 0.28);
-        const dr = step * 0.18;
-        ctx.fillStyle = halftoneColor;
-        for (let dy = -size; dy <= size; dy += step) {
-          for (let dx = -size; dx <= size; dx += step) {
-            if (dx * dx + dy * dy < (size - 0.5) * (size - 0.5)) {
-              ctx.beginPath();
-              ctx.arc(x + dx, y + dy, dr, 0, Math.PI * 2);
-              ctx.fill();
-            }
-          }
-        }
+        const step = Math.max(2.2, size * 0.28); const dr = step * 0.18;
+        ctx.fillStyle = isDarkTheme ? 'rgba(255,255,255,0.16)' : 'rgba(255,255,255,0.22)';
+        for (let dy = -size; dy <= size; dy += step)
+          for (let dx = -size; dx <= size; dx += step)
+            if (dx*dx + dy*dy < (size-0.5)*(size-0.5)) { ctx.beginPath(); ctx.arc(x+dx, y+dy, dr, 0, Math.PI*2); ctx.fill(); }
         ctx.restore();
       }
 
-      // Highlight gloss
-      ctx.beginPath();
-      ctx.arc(x - size * 0.2, y - size * 0.2, size * 0.22, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(255,255,255,0.18)';
-      ctx.fill();
-
-      // Outline
+      // Border ring (Paper: solid ink #2A2520 stroke)
       drawShape(ctx, x, y, size);
-      ctx.strokeStyle = outlineColor;
-      ctx.lineWidth = 1.8;
+      ctx.strokeStyle = isDarkTheme ? p.sand : p.ink;
+      ctx.lineWidth = Math.max(1.5, size * 0.08);
       ctx.stroke();
 
-      // Level tag inside (for larger nodes)
-      if (size > 8) {
-        ctx.font = `600 ${Math.max(5, size * 0.35)}px "JetBrains Mono", monospace`;
+      // Level abbreviation text inside (Paper: cream FAF7F0 on colored circle)
+      if (size > 4) {
+        const tag = LEVEL_ABBR[level] || (level || '').toUpperCase();
+        const fs = Math.max(5, size * 0.48);
+        ctx.font = `700 ${fs}px "JetBrains Mono", monospace`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillStyle = 'rgba(255,255,255,0.8)';
-        const tag = (level || '').replace('_', ' ').slice(0, 6).toUpperCase();
+        ctx.fillStyle = p.paper; // FAF7F0 cream
         ctx.fillText(tag, x, y + 0.5);
       }
     }
@@ -2813,7 +2867,7 @@ window.setView = function(v) {
     mondrianEl.style.display = 'block';
     mondrianEl.innerHTML = '';
     if (sigmaInstance) { sigmaInstance.kill(); sigmaInstance = null; }
-    mondrianTreemap(mondrianEl, mondrianEl.clientWidth, mondrianEl.clientHeight);
+    mondrianTreemap(mondrianEl);
     updateLegend();
   } else {
     sigmaEl.style.display = 'block';
@@ -2834,7 +2888,7 @@ window.cycleColorMode = function() {
   if (currentView === 'mondrian') {
     const mondrianEl = document.getElementById('mondrian-container');
     mondrianEl.innerHTML = '';
-    mondrianTreemap(mondrianEl, mondrianEl.clientWidth, mondrianEl.clientHeight);
+    mondrianTreemap(mondrianEl);
   } else {
     initRenderer();
   }
@@ -2870,7 +2924,7 @@ window.setPalette = function(pal) {
   if (currentView === 'mondrian') {
     const mondrianEl = document.getElementById('mondrian-container');
     mondrianEl.innerHTML = '';
-    mondrianTreemap(mondrianEl, mondrianEl.clientWidth, mondrianEl.clientHeight);
+    mondrianTreemap(mondrianEl);
   } else {
     initRenderer();
   }
