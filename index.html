@@ -39,23 +39,23 @@
   }
 
   /* ─── Palette: Estuary ─── */
-  body[data-palette="estuary"] {
-    --p-l1: #2C3E50; --p-l2: #3D6B6B; --p-l3: #C07840;
-    --p-l4: #B8A088; --p-l5: #A0A8A8; --p-l6: #8A8A82;
-    --p-paper: #F5F3EE; --p-parchment: #EDE9E2; --p-bone: #DDD8CE;
-    --p-ink: #1E2832; --p-ash: #8A9098; --p-driftwood: #6A7478;
-    --p-deep: #1B2028; --p-sand: #B8B0A0;
-    --p-accent1: #3D8B7B; --p-accent2: #C07840; --p-accent3: #8B3A3A;
+  body[data-palette="depths"] {
+    --p-l1: #1B6B93; --p-l2: #2E8B8B; --p-l3: #4AADBA;
+    --p-l4: #7BC8D8; --p-l5: #5A8FA0; --p-l6: #3D5A6E;
+    --p-paper: #F0F5F8; --p-parchment: #E4EDF2; --p-bone: #CDD8E0;
+    --p-ink: #12283A; --p-ash: #6A8494; --p-driftwood: #4A6878;
+    --p-deep: #0E1B26; --p-sand: #A0C0D0;
+    --p-accent1: #2E8B8B; --p-accent2: #E08A50; --p-accent3: #C04848;
   }
 
-  /* ─── Palette: Ridgeline ─── */
-  body[data-palette="ridgeline"] {
-    --p-l1: #4A4458; --p-l2: #5E7060; --p-l3: #A85A3A;
-    --p-l4: #C8AD7A; --p-l5: #B09880; --p-l6: #908882;
-    --p-paper: #F6F2EC; --p-parchment: #EDE8E0; --p-bone: #E0D8CC;
-    --p-ink: #2A2430; --p-ash: #8A8488; --p-driftwood: #6A6468;
-    --p-deep: #1A1820; --p-sand: #C0B8A8;
-    --p-accent1: #5E7860; --p-accent2: #C07850; --p-accent3: #8A3A40;
+  /* ─── Palette: Signal ─── */
+  body[data-palette="signal"] {
+    --p-l1: #E85D3A; --p-l2: #2BAB6E; --p-l3: #3A7BD5;
+    --p-l4: #F5A623; --p-l5: #9B59B6; --p-l6: #1ABC9C;
+    --p-paper: #FAFAF8; --p-parchment: #F0EDE8; --p-bone: #E0DDD5;
+    --p-ink: #2C2C2C; --p-ash: #888888; --p-driftwood: #666666;
+    --p-deep: #1A1A1E; --p-sand: #D0C8B8;
+    --p-accent1: #2BAB6E; --p-accent2: #E85D3A; --p-accent3: #3A7BD5;
   }
 
   /* ─── Dark Theme ─── */
@@ -68,15 +68,15 @@
     --node-outline: rgba(201,184,150,0.45); --label-halo: var(--p-deep);
     --halftone-alpha: 0.16; --shadow-dot: rgba(0,0,0,VAR);
   }
-  body.theme-dark[data-palette="estuary"] {
-    --bg: #1B2028; --bg-surface: #1E2228;
-    --text-primary: #B8B0A0; --text-secondary: rgba(184,176,160,0.5);
-    --label-halo: #1B2028;
+  body.theme-dark[data-palette="depths"] {
+    --bg: #0E1B26; --bg-surface: #122230;
+    --text-primary: #A0C0D0; --text-secondary: rgba(160,192,208,0.5);
+    --label-halo: #0E1B26;
   }
-  body.theme-dark[data-palette="ridgeline"] {
-    --bg: #1A1820; --bg-surface: #1E1C22;
-    --text-primary: #C0B8A8; --text-secondary: rgba(192,184,168,0.5);
-    --label-halo: #1A1820;
+  body.theme-dark[data-palette="signal"] {
+    --bg: #1A1A1E; --bg-surface: #222226;
+    --text-primary: #D0C8B8; --text-secondary: rgba(208,200,184,0.5);
+    --label-halo: #1A1A1E;
   }
 
   html, body {
@@ -123,7 +123,7 @@
   /* Sigma container */
   .sigma-container {
     position: absolute;
-    inset: 0;
+    inset: 70px 0 0 0;
     z-index: 3;
   }
   .sigma-container canvas { position: absolute !important; }
@@ -249,7 +249,7 @@
   }
   .info-head {
     padding: 10px 14px;
-    border-bottom: 1px solid var(--lt-bone);
+    border-bottom: 1px solid var(--border);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -258,7 +258,7 @@
     font-family: 'Playfair Display', serif;
     font-size: 14px;
     font-weight: 600;
-    color: var(--lt-ink);
+    color: var(--text-primary);
   }
   .info-head .lvl {
     font-family: 'JetBrains Mono', monospace;
@@ -275,17 +275,17 @@
     display: flex;
     justify-content: space-between;
     padding: 3px 0;
-    border-bottom: 1px solid rgba(232,224,208,0.5);
+    border-bottom: 1px solid var(--border);
   }
-  .ir-k { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--lt-ash); }
-  .ir-v { font-weight: 600; color: var(--lt-ink); font-size: 10px; }
+  .ir-k { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text-secondary); }
+  .ir-v { font-weight: 600; color: var(--text-primary); font-size: 10px; }
   .isec {
     font-family: 'JetBrains Mono', monospace;
     font-size: 8px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 1px;
-    color: var(--lt-driftwood);
+    color: var(--text-muted);
     margin: 8px 0 4px;
   }
   .wi-r {
@@ -295,7 +295,7 @@
     padding: 3px 6px;
     margin: 2px 0;
     border-radius: 3px;
-    background: rgba(42,37,32,0.02);
+    background: var(--bg-surface);
     border-left: 2.5px solid transparent;
     font-size: 10px;
   }
@@ -398,7 +398,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 8px 12px;
-    border-bottom: 1px solid var(--lt-bone);
+    border-bottom: 1px solid var(--border);
     gap: 8px;
   }
   .ht-head h4 {
@@ -522,8 +522,8 @@
   .palette-swatch:hover { transform: scale(1.15); }
   .palette-swatch.active { border-color: var(--text-primary); }
   .palette-swatch[data-pal="terrain"] { background: linear-gradient(135deg, #5A7D8A 30%, #B85C38 70%); }
-  .palette-swatch[data-pal="estuary"] { background: linear-gradient(135deg, #2C3E50 30%, #C07840 70%); }
-  .palette-swatch[data-pal="ridgeline"] { background: linear-gradient(135deg, #4A4458 30%, #A85A3A 70%); }
+  .palette-swatch[data-pal="depths"] { background: linear-gradient(135deg, #1B6B93 30%, #4AADBA 70%); }
+  .palette-swatch[data-pal="signal"] { background: linear-gradient(135deg, #E85D3A 30%, #2BAB6E 70%); }
   .palette-label {
     font-family: 'JetBrains Mono', monospace;
     font-size: 7.5px;
@@ -665,7 +665,7 @@
 
   .agent-hdr {
     padding: 16px 20px 12px;
-    border-bottom: 1px solid var(--lt-bone);
+    border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -846,7 +846,7 @@
   .agent-mode-tabs {
     display: flex;
     padding: 0 20px;
-    border-bottom: 1px solid var(--lt-bone);
+    border-bottom: 1px solid var(--border);
     flex-shrink: 0;
   }
   .agent-mode-tab {
@@ -877,7 +877,7 @@
   /* ─── Feedback Mode Styles ─── */
   .feedback-context {
     padding: 10px 20px;
-    border-bottom: 1px solid var(--lt-bone);
+    border-bottom: 1px solid var(--border);
     background: rgba(107,127,94,0.04);
     flex-shrink: 0;
     display: none;
@@ -980,7 +980,7 @@
 
   .rq-header {
     padding: 14px 18px 10px;
-    border-bottom: 1px solid var(--lt-bone);
+    border-bottom: 1px solid var(--border);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -995,7 +995,7 @@
     display: flex;
     gap: 4px;
     padding: 8px 18px;
-    border-bottom: 1px solid var(--lt-bone);
+    border-bottom: 1px solid var(--border);
   }
   .rq-filter-btn {
     font-family: 'JetBrains Mono', monospace;
@@ -1198,12 +1198,6 @@
     <button class="t-btn" id="tTheme" onclick="togTheme()">dark</button>
   </div>
 
-  <div class="data-switcher">
-    <select id="dataSource" onchange="switchDataSource(this.value)">
-      <option value="example">OpenClaw Example</option>
-      <option value="placeholder">Generic Placeholder</option>
-    </select>
-  </div>
 
   <div class="keys">1-4 views · H halftone · Z depth · L labels · S shapes · D dark · P palette · R reset · / agent · Q queue</div>
 
@@ -1230,8 +1224,8 @@
 <div class="palette-picker">
   <span class="palette-label">palette</span>
   <div class="palette-swatch active" data-pal="terrain" onclick="setPalette('terrain')"></div>
-  <div class="palette-swatch" data-pal="estuary" onclick="setPalette('estuary')"></div>
-  <div class="palette-swatch" data-pal="ridgeline" onclick="setPalette('ridgeline')"></div>
+  <div class="palette-swatch" data-pal="depths" onclick="setPalette('depths')"></div>
+  <div class="palette-swatch" data-pal="signal" onclick="setPalette('signal')"></div>
 </div>
 
 <!-- Leader line callout container -->
@@ -1370,120 +1364,6 @@ const LEVEL_SHADOW = {
   sync: 6, lane_header: 3, work_item: 2.5
 };
 
-// ─── Example Data: OpenClaw — 6 hierarchy levels ───
-const EXAMPLE_NODES = [
-  // L1 — Project
-  { id: 'n_root', label: 'OpenClaw', level: 'project', owner: 'Hank', fn: 'Platform', parent: null,
-    notes: 'Root orchestration platform. Three-pillar arch: Hank (Mac Mini), Jerry (MacBook Pro), Claude Code.' },
-
-  // L2 — Board Owners
-  { id: 'n_bux', label: 'UX Engineering', level: 'board_owner', owner: 'Henry', fn: 'UX Eng', parent: 'n_root',
-    notes: 'Owns all user-facing surfaces: workbench, context graph, style system.' },
-  { id: 'n_bdata', label: 'Data Platform', level: 'board_owner', owner: 'Hank', fn: 'Backend', parent: 'n_root',
-    notes: 'Rails backend, API layer, database schema, realtime channels.' },
-  { id: 'n_bsync', label: 'Vault Sync', level: 'board_owner', owner: 'Hank', fn: 'Sync', parent: 'n_root',
-    notes: 'Bidirectional Obsidian vault ↔ Rails DB synchronization.' },
-
-  // L3 — Features
-  { id: 'n_fwb', label: '2.5D Workbench', level: 'feature', owner: 'Henry', fn: 'UX Eng', parent: 'n_bux', due: '2026-03-01',
-    notes: 'Interactive 2.5D project board with hierarchy drilldown and WebGL rendering.' },
-  { id: 'n_fgr', label: 'Context Graph', level: 'feature', owner: 'Henry', fn: 'Visualization', parent: 'n_bux',
-    notes: 'Sigma.js process context graph. Dithered shadows, 4 views, LeveeTech palette.' },
-  { id: 'n_fap', label: 'Rails API', level: 'feature', owner: 'Hank', fn: 'Backend', parent: 'n_bdata',
-    notes: 'RESTful endpoints for nodes, work items, comments, approvals.' },
-  { id: 'n_fdb', label: 'DB Schema', level: 'feature', owner: 'Hank', fn: 'Data', parent: 'n_bdata',
-    notes: 'PostgreSQL schema: projects, nodes, work_items, dependencies, sync_events.' },
-  { id: 'n_fsy', label: 'Sync Engine', level: 'feature', owner: 'Hank', fn: 'Sync', parent: 'n_bsync',
-    notes: 'Vault authoritative for metadata; Rails authoritative for collaboration data.' },
-
-  // L4 — Tasks
-  { id: 'n_tcam', label: 'Camera Depth', level: 'task', owner: 'Henry', fn: 'UX', parent: 'n_fwb',
-    notes: 'Tune camera FOV and orbit for 2.5D perspective depth.' },
-  { id: 'n_thier', label: 'Hierarchy Drill', level: 'task', owner: 'Henry', fn: 'UX', parent: 'n_fwb',
-    notes: 'Expand/collapse hierarchy levels with breadcrumb navigation.' },
-  { id: 'n_tdith', label: 'Dither Shader', level: 'task', owner: 'Henry', fn: 'Rendering', parent: 'n_fgr',
-    notes: 'Canvas 2D stipple shadow with distance-based dot falloff.' },
-  { id: 'n_tlay', label: 'Layout Engine', level: 'task', owner: 'Henry', fn: 'Graph', parent: 'n_fgr',
-    notes: 'Hierarchy, sync, lanes, deps — 4 layout algorithms.' },
-  { id: 'n_tcrud', label: 'CRUD Endpoints', level: 'task', owner: 'Hank', fn: 'API', parent: 'n_fap',
-    notes: 'Standard REST for nodes and work items. Validation + auth.' },
-  { id: 'n_trt', label: 'ActionCable', level: 'task', owner: 'Hank', fn: 'Realtime', parent: 'n_fap',
-    notes: 'WebSocket channel for live node.updated, work_item.moved events.' },
-  { id: 'n_tmig', label: 'Migrations', level: 'task', owner: 'Hank', fn: 'DB', parent: 'n_fdb',
-    notes: 'Initial schema migration. 7 tables, foreign keys, indices.' },
-  { id: 'n_tfm', label: 'Frontmatter Parse', level: 'task', owner: 'Hank', fn: 'Sync', parent: 'n_fsy',
-    notes: 'Parse YAML frontmatter from vault markdown into node records.' },
-  { id: 'n_tmb', label: 'Managed Blocks', level: 'task', owner: 'Hank', fn: 'Sync', parent: 'n_fsy',
-    notes: 'Write work items, comments, approvals inside managed markers.' },
-
-  // L5 — Subtasks
-  { id: 'n_sfov', label: 'FOV Slider', level: 'subtask', owner: 'Henry', fn: 'UX', parent: 'n_tcam',
-    notes: 'Range slider for field-of-view, 30°–120°.' },
-  { id: 'n_sorbit', label: 'Orbit Controls', level: 'subtask', owner: 'Henry', fn: 'UX', parent: 'n_tcam',
-    notes: 'Mouse drag orbit with inertia and constraints.' },
-  { id: 'n_sbread', label: 'Breadcrumb Trail', level: 'subtask', owner: 'Henry', fn: 'UX', parent: 'n_thier',
-    notes: 'Clickable path showing current drill position.' },
-  { id: 'n_shalf', label: 'Halftone Variant', level: 'subtask', owner: 'Henry', fn: 'Rendering', parent: 'n_tdith',
-    notes: 'Ben-Day dot overlay toggle for Lichtenstein effect.' },
-  { id: 'n_snode', label: 'Node CRUD', level: 'subtask', owner: 'Hank', fn: 'API', parent: 'n_tcrud',
-    notes: 'POST/PATCH/DELETE for nodes with parent validation.' },
-  { id: 'n_swi', label: 'WorkItem Lanes', level: 'subtask', owner: 'Hank', fn: 'API', parent: 'n_tcrud',
-    notes: 'Lane transitions: backlog → next_up → doing → done.' },
-  { id: 'n_syaml', label: 'YAML Parser', level: 'subtask', owner: 'Hank', fn: 'Sync', parent: 'n_tfm',
-    notes: 'js-yaml with schema validation against contract.' },
-  { id: 'n_swrite', label: 'Block Writer', level: 'subtask', owner: 'Hank', fn: 'Sync', parent: 'n_tmb',
-    notes: 'Only writes inside WORKBENCH_MANAGED markers.' },
-
-  // L6 — Actions
-  { id: 'n_afov_impl', label: 'Implement slider', level: 'action', owner: 'Henry', fn: 'UX', parent: 'n_sfov',
-    notes: 'HTML range input with live camera update.' },
-  { id: 'n_afov_test', label: 'Range test', level: 'action', owner: 'Henry', fn: 'QA', parent: 'n_sfov',
-    notes: 'Verify extreme values don\'t clip geometry.' },
-  { id: 'n_ayaml_spec', label: 'Write spec', level: 'action', owner: 'Hank', fn: 'Docs', parent: 'n_syaml',
-    notes: 'Document frontmatter schema in vault contract.' },
-  { id: 'n_abread_ui', label: 'Render crumbs', level: 'action', owner: 'Henry', fn: 'UX', parent: 'n_sbread',
-    notes: 'Horizontal chip trail with click-to-navigate.' },
-  { id: 'n_anode_val', label: 'Validate params', level: 'action', owner: 'Hank', fn: 'API', parent: 'n_snode',
-    notes: 'Strong params + level/parent consistency check.' },
-];
-
-const EXAMPLE_DEPS = [
-  { src: 'n_fwb', tgt: 'n_fgr', kind: 'depends_on' },
-  { src: 'n_fsy', tgt: 'n_fap', kind: 'depends_on' },
-  { src: 'n_thier', tgt: 'n_tcam', kind: 'blocks' },
-  { src: 'n_trt', tgt: 'n_tcrud', kind: 'depends_on' },
-  { src: 'n_tmb', tgt: 'n_tfm', kind: 'depends_on' },
-  { src: 'n_fdb', tgt: 'n_fap', kind: 'depends_on' },
-  { src: 'n_tmig', tgt: 'n_tcrud', kind: 'blocks' },
-  { src: 'n_tdith', tgt: 'n_tlay', kind: 'depends_on' },
-];
-
-const EXAMPLE_WORKITEMS = [
-  { id: 'w1', node: 'n_tcam', title: 'Tune camera depth', status: 'doing', who: 'Henry' },
-  { id: 'w2', node: 'n_tcam', title: 'FOV slider', status: 'next_up', who: 'Henry' },
-  { id: 'w3', node: 'n_thier', title: 'Expand/collapse', status: 'backlog', who: 'Henry' },
-  { id: 'w4', node: 'n_thier', title: 'Breadcrumb trail', status: 'backlog', who: null },
-  { id: 'w5', node: 'n_tdith', title: 'Ordered dither 4x4', status: 'doing', who: 'Henry' },
-  { id: 'w6', node: 'n_tdith', title: 'Halftone variant', status: 'next_up', who: null },
-  { id: 'w7', node: 'n_tcrud', title: 'Node CRUD', status: 'done', who: 'Hank' },
-  { id: 'w8', node: 'n_tcrud', title: 'Work item lanes', status: 'doing', who: 'Hank' },
-  { id: 'w9', node: 'n_trt', title: 'Channel setup', status: 'backlog', who: 'Hank' },
-  { id: 'w10', node: 'n_tfm', title: 'YAML parser', status: 'done', who: 'Hank' },
-  { id: 'w11', node: 'n_tmb', title: 'Write managed blocks', status: 'next_up', who: 'Hank' },
-  { id: 'w12', node: 'n_tlay', title: 'Force-directed fallback', status: 'doing', who: 'Henry' },
-  { id: 'w13', node: 'n_tmig', title: 'Run initial migration', status: 'done', who: 'Hank' },
-];
-
-const EXAMPLE_SYNC = [
-  { from: 'Obsidian Vault', to: 'Frontmatter Parser', label: 'metadata' },
-  { from: 'Frontmatter Parser', to: 'Rails DB', label: 'vault→db' },
-  { from: 'Rails DB', to: 'Block Writer', label: 'db→vault' },
-  { from: 'Block Writer', to: 'Obsidian Vault', label: 'managed' },
-  { from: 'Rails DB', to: 'ActionCable', label: 'events' },
-  { from: 'ActionCable', to: 'Workbench UI', label: 'realtime' },
-  { from: 'Workbench UI', to: 'Rails API', label: 'mutations' },
-  { from: 'Rails API', to: 'Rails DB', label: 'persist' },
-];
 
 // ─── Palette System ───
 const PALETTES = {
@@ -1495,21 +1375,21 @@ const PALETTES = {
     deep: '#1A1816', sand: '#C9B896',
     accent1: '#5E8B7E', accent2: '#C17C60', accent3: '#B34233'
   },
-  estuary: {
-    name: 'Estuary', l1: '#2C3E50', l2: '#3D6B6B', l3: '#C07840',
-    l4: '#B8A088', l5: '#A0A8A8', l6: '#8A8A82',
-    paper: '#F5F3EE', parchment: '#EDE9E2', bone: '#DDD8CE',
-    ink: '#1E2832', ash: '#8A9098', driftwood: '#6A7478',
-    deep: '#1B2028', sand: '#B8B0A0',
-    accent1: '#3D8B7B', accent2: '#C07840', accent3: '#8B3A3A'
+  depths: {
+    name: 'Depths', l1: '#1B6B93', l2: '#2E8B8B', l3: '#4AADBA',
+    l4: '#7BC8D8', l5: '#5A8FA0', l6: '#3D5A6E',
+    paper: '#F0F5F8', parchment: '#E4EDF2', bone: '#CDD8E0',
+    ink: '#12283A', ash: '#6A8494', driftwood: '#4A6878',
+    deep: '#0E1B26', sand: '#A0C0D0',
+    accent1: '#2E8B8B', accent2: '#E08A50', accent3: '#C04848'
   },
-  ridgeline: {
-    name: 'Ridgeline', l1: '#4A4458', l2: '#5E7060', l3: '#A85A3A',
-    l4: '#C8AD7A', l5: '#B09880', l6: '#908882',
-    paper: '#F6F2EC', parchment: '#EDE8E0', bone: '#E0D8CC',
-    ink: '#2A2430', ash: '#8A8488', driftwood: '#6A6468',
-    deep: '#1A1820', sand: '#C0B8A8',
-    accent1: '#5E7860', accent2: '#C07850', accent3: '#8A3A40'
+  signal: {
+    name: 'Signal', l1: '#E85D3A', l2: '#2BAB6E', l3: '#3A7BD5',
+    l4: '#F5A623', l5: '#9B59B6', l6: '#1ABC9C',
+    paper: '#FAFAF8', parchment: '#F0EDE8', bone: '#E0DDD5',
+    ink: '#2C2C2C', ash: '#888888', driftwood: '#666666',
+    deep: '#1A1A1E', sand: '#D0C8B8',
+    accent1: '#2BAB6E', accent2: '#E85D3A', accent3: '#3A7BD5'
   }
 };
 
@@ -1841,24 +1721,11 @@ const PLACEHOLDER_SYNC = [
   { from: 'REST API', to: 'App Database', label: 'persist' },
 ];
 
-// ─── Active Data (switchable) ───
-let activeDataSource = 'example';
-let nodeData, depEdges, workItems, syncFlowData;
-
-function loadDataSource(source) {
-  activeDataSource = source;
-  if (source === 'placeholder') {
-    nodeData = PLACEHOLDER_NODES;
-    depEdges = PLACEHOLDER_DEPS;
-    workItems = PLACEHOLDER_WORKITEMS;
-    syncFlowData = PLACEHOLDER_SYNC;
-  } else {
-    nodeData = EXAMPLE_NODES;
-    depEdges = EXAMPLE_DEPS;
-    workItems = EXAMPLE_WORKITEMS;
-    syncFlowData = EXAMPLE_SYNC;
-  }
-}
+// ─── Active Data ───
+let nodeData = PLACEHOLDER_NODES;
+let depEdges = PLACEHOLDER_DEPS;
+let workItems = PLACEHOLDER_WORKITEMS;
+let syncFlowData = PLACEHOLDER_SYNC;
 
 // ─── State ───
 let currentView = 'hierarchy';
@@ -2490,7 +2357,7 @@ function showInfo(nodeId) {
     // Notes
     if (nd?.notes || attrs.notes) {
       h += `<div class="isec">Notes</div>`;
-      h += `<div style="font-size:10px;color:var(--lt-driftwood);line-height:1.4;padding:4px 0">${nd?.notes || attrs.notes}</div>`;
+      h += `<div style="font-size:10px;color:var(--text-secondary);line-height:1.4;padding:4px 0">${nd?.notes || attrs.notes}</div>`;
     }
 
     const deps = depEdges.filter(d => d.src === nodeId || d.tgt === nodeId);
@@ -2661,7 +2528,6 @@ window.togShapeMode = function() {
 };
 
 window.switchDataSource = function(source) {
-  loadDataSource(source);
   selectedNode = null;
   hoveredNode = null;
   clearAllLeaderLines();
@@ -2705,7 +2571,7 @@ let agentMode = 'query'; // 'query' or 'feedback'
 let feedbackType = 'feedback'; // feedback, task, missing, improvement, question
 
 // ─── Agent Backend API Hook ───
-// Configure this to connect to a real agent backend (e.g., OpenClaw gateway)
+// Configure this to connect to a real agent backend
 const AGENT_CONFIG = {
   apiEndpoint: null,  // Set to URL like 'https://your-api.com/agent' to enable
   apiKey: null,       // Optional API key for authentication
@@ -3440,7 +3306,7 @@ function queryNodeDetail(node) {
   html += `</div>`;
 
   if (node.notes) {
-    html += `<div style="margin-top:6px;font-size:11px;font-style:italic;color:var(--lt-driftwood)">${node.notes}</div>`;
+    html += `<div style="margin-top:6px;font-size:11px;font-style:italic;color:var(--text-secondary)">${node.notes}</div>`;
   }
 
   if (children.length) {
@@ -3543,7 +3409,6 @@ if (isDarkTheme) {
 }
 
 // Init data + colors
-loadDataSource('example');
 rebuildLevelColors();
 initRenderer();
 updateReviewQueueUI();
