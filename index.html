@@ -452,6 +452,551 @@
   .pin-indicator:hover {
     background: rgba(184,92,56,0.08);
   }
+
+  /* ─── Agent Drawer ─── */
+  .agent-toggle {
+    position: fixed;
+    top: 14px;
+    right: 18px;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border: 1px solid var(--lt-bone);
+    border-radius: 4px;
+    background: var(--lt-paper);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--lt-ink);
+    cursor: pointer;
+    transition: all 0.15s;
+    box-shadow: 0 1px 4px rgba(26,24,22,0.06);
+  }
+  .agent-toggle:hover { border-color: var(--lt-terracotta); color: var(--lt-terracotta); }
+  .agent-toggle.open { background: var(--lt-terracotta); color: #fff; border-color: var(--lt-terracotta); }
+  .agent-toggle svg { width: 14px; height: 14px; fill: currentColor; }
+
+  .agent-drawer {
+    position: fixed;
+    top: 0; right: 0;
+    width: 380px;
+    height: 100%;
+    background: var(--lt-paper);
+    border-left: 1px solid var(--lt-bone);
+    box-shadow: -8px 0 32px rgba(26,24,22,0.08);
+    z-index: 58;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.25s ease;
+  }
+  .agent-drawer.open { transform: translateX(0); }
+
+  .agent-hdr {
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--lt-bone);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .agent-hdr h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--lt-ink);
+  }
+  .agent-hdr .agent-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--lt-terracotta);
+    padding: 2px 6px;
+    border: 1px solid rgba(184,92,56,0.3);
+    border-radius: 2px;
+  }
+
+  .agent-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    scroll-behavior: smooth;
+  }
+
+  .agent-msg {
+    max-width: 92%;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--lt-ink);
+  }
+  .agent-msg.user {
+    align-self: flex-end;
+    background: var(--lt-ink);
+    color: var(--lt-parchment);
+    border-radius: 8px 8px 2px 8px;
+  }
+  .agent-msg.agent {
+    align-self: flex-start;
+    background: var(--lt-parchment);
+    border: 1px solid var(--lt-bone);
+    border-radius: 8px 8px 8px 2px;
+  }
+  .agent-msg .msg-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7.5px;
+    color: var(--lt-ash);
+    margin-top: 6px;
+    letter-spacing: 0.3px;
+  }
+  .agent-msg.user .msg-meta { color: rgba(201,184,150,0.5); }
+
+  /* Node chips in agent responses */
+  .node-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 1px 7px;
+    border-radius: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.1s;
+    border: 1px solid transparent;
+    vertical-align: middle;
+    margin: 1px 2px;
+  }
+  .node-chip:hover { border-color: currentColor; transform: scale(1.04); }
+  .node-chip .chip-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* Agent result cards */
+  .agent-result {
+    background: var(--lt-paper);
+    border: 1px solid var(--lt-bone);
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-top: 6px;
+    font-size: 11px;
+  }
+  .agent-result .ar-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--lt-driftwood);
+    margin-bottom: 6px;
+  }
+  .agent-result .ar-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 3px 0;
+    border-bottom: 1px solid rgba(232,224,208,0.4);
+    font-size: 10px;
+  }
+  .agent-result .ar-row:last-child { border-bottom: none; }
+
+  /* Suggestions */
+  .agent-suggestions {
+    padding: 12px 20px;
+    border-top: 1px solid var(--lt-bone);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .sug-chip {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8.5px;
+    padding: 4px 10px;
+    border: 1px solid var(--lt-bone);
+    border-radius: 3px;
+    background: transparent;
+    color: var(--lt-driftwood);
+    cursor: pointer;
+    transition: all 0.12s;
+    letter-spacing: 0.2px;
+  }
+  .sug-chip:hover { border-color: var(--lt-terracotta); color: var(--lt-terracotta); }
+
+  /* Input area */
+  .agent-input-area {
+    padding: 12px 20px 16px;
+    border-top: 1px solid var(--lt-bone);
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .agent-input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid var(--lt-bone);
+    border-radius: 4px;
+    font-family: 'Literata', serif;
+    font-size: 12px;
+    color: var(--lt-ink);
+    background: var(--lt-paper);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .agent-input:focus { border-color: var(--lt-terracotta); }
+  .agent-input::placeholder { color: var(--lt-ash); }
+  .agent-send {
+    padding: 8px 14px;
+    border: none;
+    border-radius: 4px;
+    background: var(--lt-ink);
+    color: var(--lt-parchment);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.12s;
+    letter-spacing: 0.3px;
+  }
+  .agent-send:hover { background: var(--lt-terracotta); }
+
+  /* Highlight ring on graph nodes referenced by agent */
+  .agent-highlight-active .sigma-container canvas { transition: filter 0.2s; }
+
+  /* ─── Agent Mode Tabs ─── */
+  .agent-mode-tabs {
+    display: flex;
+    padding: 0 20px;
+    border-bottom: 1px solid var(--lt-bone);
+    flex-shrink: 0;
+  }
+  .agent-mode-tab {
+    flex: 1;
+    padding: 8px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    text-align: center;
+    color: var(--lt-ash);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+  }
+  .agent-mode-tab:hover { color: var(--lt-ink); }
+  .agent-mode-tab.active {
+    color: var(--lt-ink);
+    border-bottom-color: var(--lt-terracotta);
+  }
+  .agent-mode-tab.active.feedback-active {
+    border-bottom-color: var(--lt-sage);
+  }
+
+  /* ─── Feedback Mode Styles ─── */
+  .feedback-context {
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--lt-bone);
+    background: rgba(107,127,94,0.04);
+    flex-shrink: 0;
+    display: none;
+  }
+  .feedback-context.show { display: block; }
+  .feedback-context-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--lt-sage);
+    margin-bottom: 4px;
+  }
+  .feedback-node-select {
+    width: 100%;
+    padding: 5px 8px;
+    border: 1px solid var(--lt-bone);
+    border-radius: 3px;
+    font-family: 'Literata', serif;
+    font-size: 11px;
+    color: var(--lt-ink);
+    background: var(--lt-paper);
+    outline: none;
+    cursor: pointer;
+    margin-bottom: 6px;
+  }
+  .feedback-node-select:focus { border-color: var(--lt-sage); }
+  .feedback-type-row {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .feedback-type-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    font-weight: 500;
+    padding: 3px 8px;
+    border: 1px solid var(--lt-bone);
+    border-radius: 2px;
+    background: transparent;
+    color: var(--lt-ash);
+    cursor: pointer;
+    transition: all 0.12s;
+    letter-spacing: 0.2px;
+  }
+  .feedback-type-btn:hover { border-color: var(--lt-sage); color: var(--lt-sage); }
+  .feedback-type-btn.active { border-color: var(--lt-sage); color: var(--lt-sage); background: rgba(107,127,94,0.06); }
+
+  /* ─── Review Queue ─── */
+  .review-queue-toggle {
+    position: fixed;
+    top: 14px;
+    right: 120px;
+    z-index: 60;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border: 1px solid var(--lt-bone);
+    border-radius: 4px;
+    background: var(--lt-paper);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 500;
+    color: var(--lt-ink);
+    cursor: pointer;
+    transition: all 0.15s;
+    box-shadow: 0 1px 4px rgba(26,24,22,0.06);
+  }
+  .review-queue-toggle:hover { border-color: var(--lt-sage); color: var(--lt-sage); }
+  .review-queue-toggle .rq-count {
+    background: var(--lt-sage);
+    color: #fff;
+    font-size: 8px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 8px;
+    min-width: 16px;
+    text-align: center;
+  }
+  .review-queue-toggle .rq-count.empty { background: var(--lt-ash); }
+
+  .review-queue {
+    position: fixed;
+    top: 46px;
+    right: 120px;
+    width: 400px;
+    max-height: 70vh;
+    background: var(--lt-paper);
+    border: 1px solid var(--lt-bone);
+    border-radius: 6px;
+    box-shadow: 0 12px 48px rgba(26,24,22,0.14), 0 4px 12px rgba(26,24,22,0.06);
+    z-index: 59;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .review-queue.open { display: flex; }
+
+  .rq-header {
+    padding: 14px 18px 10px;
+    border-bottom: 1px solid var(--lt-bone);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .rq-header h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--lt-ink);
+  }
+  .rq-filter-row {
+    display: flex;
+    gap: 4px;
+    padding: 8px 18px;
+    border-bottom: 1px solid var(--lt-bone);
+  }
+  .rq-filter-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    font-weight: 500;
+    padding: 2px 7px;
+    border: 1px solid var(--lt-bone);
+    border-radius: 2px;
+    background: transparent;
+    color: var(--lt-ash);
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+  .rq-filter-btn:hover { border-color: var(--lt-driftwood); }
+  .rq-filter-btn.active { border-color: var(--lt-sage); color: var(--lt-sage); }
+
+  .rq-items {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 18px;
+  }
+  .rq-empty {
+    text-align: center;
+    padding: 32px 0;
+    color: var(--lt-ash);
+    font-size: 11px;
+    font-style: italic;
+  }
+
+  .rq-item {
+    padding: 10px 12px;
+    border: 1px solid var(--lt-bone);
+    border-radius: 5px;
+    margin-bottom: 8px;
+    background: var(--lt-paper);
+    transition: border-color 0.12s;
+  }
+  .rq-item:hover { border-color: var(--lt-driftwood); }
+  .rq-item-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+    gap: 8px;
+  }
+  .rq-item-type {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 2px 6px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .rq-item-type.feedback { color: var(--lt-tidal); background: rgba(90,125,138,0.08); }
+  .rq-item-type.task { color: var(--lt-terracotta); background: rgba(184,92,56,0.08); }
+  .rq-item-type.missing { color: var(--hank-juke); background: rgba(179,66,51,0.08); }
+  .rq-item-type.improvement { color: var(--lt-sage); background: rgba(107,127,94,0.08); }
+  .rq-item-type.question { color: var(--lt-desert); background: rgba(212,169,106,0.08); }
+  .rq-item-status {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 2px 6px;
+    border-radius: 2px;
+  }
+  .rq-item-status.pending_review { color: var(--lt-desert); background: rgba(212,169,106,0.08); }
+  .rq-item-status.accepted { color: var(--lt-sage); background: rgba(107,127,94,0.08); }
+  .rq-item-status.dismissed { color: var(--lt-ash); background: rgba(154,149,144,0.08); }
+  .rq-item-text {
+    font-size: 11px;
+    line-height: 1.45;
+    color: var(--lt-ink);
+    margin-bottom: 6px;
+  }
+  .rq-item-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+  .rq-item-meta-left {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    color: var(--lt-ash);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .rq-item-actions {
+    display: flex;
+    gap: 4px;
+  }
+  .rq-action-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7.5px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border: 1px solid var(--lt-bone);
+    border-radius: 2px;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.12s;
+    letter-spacing: 0.2px;
+  }
+  .rq-action-btn.accept { color: var(--lt-sage); }
+  .rq-action-btn.accept:hover { border-color: var(--lt-sage); background: rgba(107,127,94,0.06); }
+  .rq-action-btn.dismiss { color: var(--lt-ash); }
+  .rq-action-btn.dismiss:hover { border-color: var(--lt-ash); }
+  .rq-action-btn.delete { color: var(--hank-juke); }
+  .rq-action-btn.delete:hover { border-color: var(--hank-juke); }
+
+  .rq-footer {
+    padding: 10px 18px;
+    border-top: 1px solid var(--lt-bone);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    color: var(--lt-ash);
+  }
+  .rq-export-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border: 1px solid var(--lt-bone);
+    border-radius: 2px;
+    background: transparent;
+    color: var(--lt-driftwood);
+    cursor: pointer;
+    letter-spacing: 0.3px;
+  }
+  .rq-export-btn:hover { border-color: var(--lt-terracotta); color: var(--lt-terracotta); }
+
+  /* Agent input in feedback mode */
+  .agent-input-area.feedback-mode .agent-input {
+    border-color: rgba(107,127,94,0.3);
+  }
+  .agent-input-area.feedback-mode .agent-input:focus {
+    border-color: var(--lt-sage);
+  }
+  .agent-input-area.feedback-mode .agent-send {
+    background: var(--lt-sage);
+  }
+  .agent-input-area.feedback-mode .agent-send:hover {
+    background: var(--lt-forest);
+  }
+
+  /* Feedback logged confirmation */
+  .feedback-logged {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: rgba(107,127,94,0.06);
+    border: 1px solid rgba(107,127,94,0.2);
+    border-radius: 6px;
+    font-size: 11px;
+    color: var(--lt-sage);
+    margin-top: 4px;
+  }
+  .feedback-logged .fl-check {
+    font-size: 14px;
+    flex-shrink: 0;
+  }
 </style>
 </head>
 <body>
@@ -482,7 +1027,7 @@
     <button class="t-btn" id="tLabels" onclick="togLabels()">labels</button>
   </div>
 
-  <div class="keys">1-4 views · H halftone · Z depth · L labels · R reset · click node for detail · esc close</div>
+  <div class="keys">1-4 views · H halftone · Z depth · L labels · R reset · / agent · Q queue · click node · esc close</div>
 
   <div class="edge-legend">
     <div class="elg"><div class="elg-line" style="border-color:#C9B896"></div>hierarchy</div>
@@ -501,6 +1046,92 @@
   </div>
 
   <div class="info" id="info"></div>
+</div>
+
+<!-- Review Queue toggle -->
+<button class="review-queue-toggle" id="rqToggle" onclick="toggleReviewQueue()">
+  <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM17.99 9l-1.41-1.42-6.59 6.59-2.58-2.57-1.42 1.41 4 3.99z"/></svg>
+  Queue
+  <span class="rq-count empty" id="rqCount">0</span>
+</button>
+
+<!-- Review Queue Panel -->
+<div class="review-queue" id="reviewQueue">
+  <div class="rq-header">
+    <h3>Review Queue</h3>
+    <span class="agent-badge" style="color:var(--lt-sage);border-color:rgba(107,127,94,0.3)">pending review</span>
+  </div>
+  <div class="rq-filter-row">
+    <button class="rq-filter-btn active" data-filter="all" onclick="filterReviewQueue('all')">all</button>
+    <button class="rq-filter-btn" data-filter="pending_review" onclick="filterReviewQueue('pending_review')">pending</button>
+    <button class="rq-filter-btn" data-filter="accepted" onclick="filterReviewQueue('accepted')">accepted</button>
+    <button class="rq-filter-btn" data-filter="feedback" onclick="filterReviewQueue('feedback')">feedback</button>
+    <button class="rq-filter-btn" data-filter="task" onclick="filterReviewQueue('task')">tasks</button>
+    <button class="rq-filter-btn" data-filter="missing" onclick="filterReviewQueue('missing')">missing</button>
+  </div>
+  <div class="rq-items" id="rqItems">
+    <div class="rq-empty">No items yet. Use the agent feedback mode to log items.</div>
+  </div>
+  <div class="rq-footer">
+    <span id="rqSummary">0 items</span>
+    <button class="rq-export-btn" onclick="exportReviewQueue()">EXPORT JSON</button>
+  </div>
+</div>
+
+<!-- Agent toggle button -->
+<button class="agent-toggle" id="agentToggle" onclick="toggleAgent()">
+  <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/><path d="M7 9h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2z"/></svg>
+  Agent
+</button>
+
+<!-- Agent drawer -->
+<div class="agent-drawer" id="agentDrawer">
+  <div class="agent-hdr">
+    <h2>Graph Agent</h2>
+    <span class="agent-badge" id="agentModeBadge">local query</span>
+  </div>
+
+  <div class="agent-mode-tabs">
+    <button class="agent-mode-tab active" data-mode="query" onclick="setAgentMode('query')">Query</button>
+    <button class="agent-mode-tab" data-mode="feedback" onclick="setAgentMode('feedback')">Feedback</button>
+  </div>
+
+  <!-- Feedback context bar (visible in feedback mode) -->
+  <div class="feedback-context" id="feedbackContext">
+    <div class="feedback-context-label">Context node (optional)</div>
+    <select class="feedback-node-select" id="feedbackNodeSelect">
+      <option value="">— General feedback —</option>
+    </select>
+    <div class="feedback-context-label" style="margin-top:6px">Feedback type</div>
+    <div class="feedback-type-row" id="feedbackTypeRow">
+      <button class="feedback-type-btn active" data-type="feedback" onclick="setFeedbackType('feedback')">feedback</button>
+      <button class="feedback-type-btn" data-type="task" onclick="setFeedbackType('task')">task</button>
+      <button class="feedback-type-btn" data-type="missing" onclick="setFeedbackType('missing')">missing</button>
+      <button class="feedback-type-btn" data-type="improvement" onclick="setFeedbackType('improvement')">improvement</button>
+      <button class="feedback-type-btn" data-type="question" onclick="setFeedbackType('question')">question</button>
+    </div>
+  </div>
+
+  <div class="agent-messages" id="agentMessages">
+    <div class="agent-msg agent">
+      I can query the process context graph for you. Ask about nodes, dependencies, blockers, work items, owners, or status.
+      <div class="msg-meta">graph agent · ready</div>
+    </div>
+  </div>
+
+  <div class="agent-suggestions" id="agentSuggestions">
+    <button class="sug-chip" onclick="agentAsk('What is blocking progress?')">blockers?</button>
+    <button class="sug-chip" onclick="agentAsk('Who owns what?')">ownership</button>
+    <button class="sug-chip" onclick="agentAsk('What is in progress?')">in progress</button>
+    <button class="sug-chip" onclick="agentAsk('Show me the critical path')">critical path</button>
+    <button class="sug-chip" onclick="agentAsk('What depends on Rails API?')">API deps</button>
+    <button class="sug-chip" onclick="agentAsk('Summarize project status')">status summary</button>
+  </div>
+
+  <div class="agent-input-area" id="agentInputArea">
+    <input class="agent-input" id="agentInput" type="text" placeholder="Ask about the graph..." onkeydown="if(event.key==='Enter')agentSend()">
+    <button class="agent-send" id="agentSendBtn" onclick="agentSend()">ASK</button>
+  </div>
 </div>
 
 <script type="module">
@@ -1444,8 +2075,839 @@ document.addEventListener('keydown', e => {
   }
 });
 
+// ─── Agent Layer ───
+let agentHighlightedNodes = new Set();
+let agentMode = 'query'; // 'query' or 'feedback'
+let feedbackType = 'feedback'; // feedback, task, missing, improvement, question
+
+// ─── Agent Backend API Hook ───
+// Configure this to connect to a real agent backend (e.g., OpenClaw gateway)
+const AGENT_CONFIG = {
+  apiEndpoint: null,  // Set to URL like 'https://your-api.com/agent' to enable
+  apiKey: null,       // Optional API key for authentication
+  projectId: 'openclaw',
+  async submitFeedback(item) {
+    if (!this.apiEndpoint) {
+      console.log('[Agent] No API endpoint configured — feedback stored locally only.', item);
+      return { ok: true, local: true };
+    }
+    try {
+      const res = await fetch(`${this.apiEndpoint}/feedback`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(this.apiKey ? { 'Authorization': `Bearer ${this.apiKey}` } : {})
+        },
+        body: JSON.stringify({ ...item, projectId: this.projectId })
+      });
+      return await res.json();
+    } catch (err) {
+      console.warn('[Agent] API submit failed, stored locally:', err);
+      return { ok: true, local: true, error: err.message };
+    }
+  },
+  async submitQuery(query, context) {
+    if (!this.apiEndpoint) return null; // Fall back to local query engine
+    try {
+      const res = await fetch(`${this.apiEndpoint}/query`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(this.apiKey ? { 'Authorization': `Bearer ${this.apiKey}` } : {})
+        },
+        body: JSON.stringify({ query, context, projectId: this.projectId })
+      });
+      return await res.json();
+    } catch (err) {
+      console.warn('[Agent] API query failed, using local engine:', err);
+      return null;
+    }
+  }
+};
+
+// ─── Review Queue (localStorage-backed) ───
+const STORAGE_KEY = 'pcg_review_queue';
+
+function loadReviewQueue() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  } catch { return []; }
+}
+
+function saveReviewQueue(items) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  updateReviewQueueUI();
+}
+
+function addReviewItem(item) {
+  const items = loadReviewQueue();
+  const entry = {
+    id: 'rq_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+    type: item.type || 'feedback',
+    text: item.text,
+    nodeId: item.nodeId || null,
+    nodeLabel: item.nodeLabel || null,
+    status: 'pending_review',
+    createdAt: new Date().toISOString(),
+    source: item.source || 'agent_drawer',
+    synced: false
+  };
+  items.unshift(entry);
+  saveReviewQueue(items);
+
+  // Attempt API sync
+  AGENT_CONFIG.submitFeedback(entry).then(res => {
+    if (res?.ok && !res.local) {
+      const updated = loadReviewQueue();
+      const idx = updated.findIndex(i => i.id === entry.id);
+      if (idx !== -1) {
+        updated[idx].synced = true;
+        saveReviewQueue(updated);
+      }
+    }
+  });
+
+  return entry;
+}
+
+function updateReviewItemStatus(itemId, status) {
+  const items = loadReviewQueue();
+  const idx = items.findIndex(i => i.id === itemId);
+  if (idx !== -1) {
+    items[idx].status = status;
+    items[idx].updatedAt = new Date().toISOString();
+    saveReviewQueue(items);
+  }
+}
+
+function deleteReviewItem(itemId) {
+  const items = loadReviewQueue().filter(i => i.id !== itemId);
+  saveReviewQueue(items);
+}
+
+// ─── Review Queue UI ───
+let rqFilter = 'all';
+
+function updateReviewQueueUI() {
+  const items = loadReviewQueue();
+  const pendingCount = items.filter(i => i.status === 'pending_review').length;
+
+  // Update count badge
+  const countEl = document.getElementById('rqCount');
+  if (countEl) {
+    countEl.textContent = pendingCount;
+    countEl.classList.toggle('empty', pendingCount === 0);
+  }
+
+  // Update summary
+  const summaryEl = document.getElementById('rqSummary');
+  if (summaryEl) {
+    summaryEl.textContent = `${items.length} item${items.length !== 1 ? 's' : ''} · ${pendingCount} pending`;
+  }
+
+  renderReviewQueueItems();
+}
+
+function renderReviewQueueItems() {
+  const container = document.getElementById('rqItems');
+  if (!container) return;
+
+  const items = loadReviewQueue();
+  let filtered = items;
+
+  if (rqFilter === 'pending_review' || rqFilter === 'accepted') {
+    filtered = items.filter(i => i.status === rqFilter);
+  } else if (rqFilter !== 'all') {
+    filtered = items.filter(i => i.type === rqFilter);
+  }
+
+  if (!filtered.length) {
+    container.innerHTML = `<div class="rq-empty">${rqFilter === 'all' ? 'No items yet. Use the agent feedback mode to log items.' : `No ${rqFilter.replace('_', ' ')} items.`}</div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(item => {
+    const date = new Date(item.createdAt);
+    const ts = date.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const nodeChipHtml = item.nodeId ? `<span class="node-chip" style="color:${LEVEL_COLOR[nodeData.find(n=>n.id===item.nodeId)?.level] || LT.tidal};background:${LEVEL_COLOR[nodeData.find(n=>n.id===item.nodeId)?.level] || LT.tidal}12;font-size:8px" onclick="focusGraphNode('${item.nodeId}')"><span class="chip-dot" style="background:${LEVEL_COLOR[nodeData.find(n=>n.id===item.nodeId)?.level] || LT.tidal}"></span>${item.nodeLabel || item.nodeId}</span>` : '';
+
+    return `<div class="rq-item" data-id="${item.id}">
+      <div class="rq-item-head">
+        <span class="rq-item-type ${item.type}">${item.type}</span>
+        <span class="rq-item-status ${item.status}">${item.status.replace('_', ' ')}</span>
+      </div>
+      <div class="rq-item-text">${item.text}</div>
+      <div class="rq-item-meta">
+        <div class="rq-item-meta-left">
+          <span>${ts}</span>
+          ${nodeChipHtml}
+          ${item.synced ? '<span style="color:var(--lt-sage)">synced</span>' : '<span>local</span>'}
+        </div>
+        <div class="rq-item-actions">
+          ${item.status === 'pending_review' ? `
+            <button class="rq-action-btn accept" onclick="reviewAction('${item.id}','accepted')">accept</button>
+            <button class="rq-action-btn dismiss" onclick="reviewAction('${item.id}','dismissed')">dismiss</button>
+          ` : ''}
+          <button class="rq-action-btn delete" onclick="reviewAction('${item.id}','delete')">×</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.toggleReviewQueue = function() {
+  const rq = document.getElementById('reviewQueue');
+  rq.classList.toggle('open');
+  if (rq.classList.contains('open')) updateReviewQueueUI();
+};
+
+window.filterReviewQueue = function(filter) {
+  rqFilter = filter;
+  document.querySelectorAll('.rq-filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === filter));
+  renderReviewQueueItems();
+};
+
+window.reviewAction = function(itemId, action) {
+  if (action === 'delete') {
+    deleteReviewItem(itemId);
+  } else {
+    updateReviewItemStatus(itemId, action);
+  }
+};
+
+window.exportReviewQueue = function() {
+  const items = loadReviewQueue();
+  const json = JSON.stringify(items, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `review-queue-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+// ─── Agent Mode Switching ───
+window.setAgentMode = function(mode) {
+  agentMode = mode;
+  document.querySelectorAll('.agent-mode-tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.mode === mode);
+    if (mode === 'feedback' && t.dataset.mode === 'feedback') t.classList.add('feedback-active');
+    else t.classList.remove('feedback-active');
+  });
+
+  const badge = document.getElementById('agentModeBadge');
+  const input = document.getElementById('agentInput');
+  const sendBtn = document.getElementById('agentSendBtn');
+  const inputArea = document.getElementById('agentInputArea');
+  const feedbackCtx = document.getElementById('feedbackContext');
+  const suggestions = document.getElementById('agentSuggestions');
+
+  if (mode === 'feedback') {
+    badge.textContent = 'feedback mode';
+    badge.style.color = 'var(--lt-sage)';
+    badge.style.borderColor = 'rgba(107,127,94,0.3)';
+    input.placeholder = 'Describe feedback, missing item, or task...';
+    sendBtn.textContent = 'LOG';
+    inputArea.classList.add('feedback-mode');
+    feedbackCtx.classList.add('show');
+
+    // Populate node select
+    populateFeedbackNodeSelect();
+
+    // Switch suggestions
+    suggestions.innerHTML = `
+      <button class="sug-chip" onclick="agentAsk('This node is missing detail on...')">missing detail</button>
+      <button class="sug-chip" onclick="agentAsk('Add a task for')">add task</button>
+      <button class="sug-chip" onclick="agentAsk('The dependency between X and Y should be...')">fix dependency</button>
+      <button class="sug-chip" onclick="agentAsk('This area needs review because...')">needs review</button>
+      <button class="sug-chip" onclick="agentAsk('Suggest improvements for')">improvements</button>
+    `;
+  } else {
+    badge.textContent = 'local query';
+    badge.style.color = '';
+    badge.style.borderColor = '';
+    input.placeholder = 'Ask about the graph...';
+    sendBtn.textContent = 'ASK';
+    inputArea.classList.remove('feedback-mode');
+    feedbackCtx.classList.remove('show');
+
+    // Restore query suggestions
+    suggestions.innerHTML = `
+      <button class="sug-chip" onclick="agentAsk('What is blocking progress?')">blockers?</button>
+      <button class="sug-chip" onclick="agentAsk('Who owns what?')">ownership</button>
+      <button class="sug-chip" onclick="agentAsk('What is in progress?')">in progress</button>
+      <button class="sug-chip" onclick="agentAsk('Show me the critical path')">critical path</button>
+      <button class="sug-chip" onclick="agentAsk('What depends on Rails API?')">API deps</button>
+      <button class="sug-chip" onclick="agentAsk('Summarize project status')">status summary</button>
+    `;
+  }
+};
+
+function populateFeedbackNodeSelect() {
+  const select = document.getElementById('feedbackNodeSelect');
+  if (!select) return;
+  select.innerHTML = '<option value="">— General feedback —</option>';
+  const levels = ['project', 'board_owner', 'feature', 'task', 'subtask', 'action'];
+  levels.forEach(level => {
+    const nodes = nodeData.filter(n => n.level === level);
+    if (nodes.length) {
+      const optgroup = document.createElement('optgroup');
+      optgroup.label = level.replace('_', ' ').toUpperCase();
+      nodes.forEach(n => {
+        const opt = document.createElement('option');
+        opt.value = n.id;
+        opt.textContent = `${n.label} (${n.owner})`;
+        optgroup.appendChild(opt);
+      });
+      select.appendChild(optgroup);
+    }
+  });
+
+  // If a node is currently selected on graph, pre-select it
+  if (selectedNode) select.value = selectedNode;
+}
+
+window.setFeedbackType = function(type) {
+  feedbackType = type;
+  document.querySelectorAll('.feedback-type-btn').forEach(b => b.classList.toggle('active', b.dataset.type === type));
+};
+
+window.toggleAgent = function() {
+  const drawer = document.getElementById('agentDrawer');
+  const toggle = document.getElementById('agentToggle');
+  drawer.classList.toggle('open');
+  toggle.classList.toggle('open');
+  if (drawer.classList.contains('open')) {
+    document.getElementById('agentInput').focus();
+    if (agentMode === 'feedback') populateFeedbackNodeSelect();
+  }
+};
+
+window.agentAsk = function(query) {
+  document.getElementById('agentInput').value = query;
+  agentSend();
+};
+
+window.agentSend = function() {
+  const input = document.getElementById('agentInput');
+  const query = input.value.trim();
+  if (!query) return;
+  input.value = '';
+
+  if (agentMode === 'feedback') {
+    // ─── Feedback Mode ───
+    addAgentMsg(query, 'user');
+
+    const nodeSelect = document.getElementById('feedbackNodeSelect');
+    const targetNodeId = nodeSelect?.value || null;
+    const targetNode = targetNodeId ? nodeData.find(n => n.id === targetNodeId) : null;
+
+    // Auto-detect feedback type from content if not explicitly set
+    let detectedType = feedbackType;
+    const lq = query.toLowerCase();
+    if (lq.includes('missing') || lq.includes('need') || lq.includes('should have') || lq.includes('lacks')) {
+      detectedType = feedbackType === 'feedback' ? 'missing' : feedbackType;
+    } else if (lq.startsWith('add ') || lq.includes('create ') || lq.includes('implement') || lq.includes('build')) {
+      detectedType = feedbackType === 'feedback' ? 'task' : feedbackType;
+    } else if (lq.includes('improve') || lq.includes('better') || lq.includes('enhance') || lq.includes('optimize')) {
+      detectedType = feedbackType === 'feedback' ? 'improvement' : feedbackType;
+    }
+
+    // Log the feedback item
+    const entry = addReviewItem({
+      type: detectedType,
+      text: query,
+      nodeId: targetNodeId,
+      nodeLabel: targetNode?.label || null,
+      source: 'agent_drawer'
+    });
+
+    setTimeout(() => {
+      let responseHtml = `<div class="feedback-logged"><span class="fl-check">✓</span>Logged as <strong>${detectedType}</strong> — pending human review</div>`;
+
+      if (targetNode) {
+        responseHtml += `<div style="margin-top:6px;font-size:11px">Attached to: ${makeNodeChip(targetNodeId)}</div>`;
+      }
+
+      responseHtml += `<div style="margin-top:6px;font-size:10px;color:var(--lt-ash)">ID: ${entry.id}</div>`;
+
+      // Add contextual response based on type
+      if (detectedType === 'missing') {
+        responseHtml += `<div style="margin-top:8px;font-size:11px;color:var(--lt-driftwood)">This will be reviewed for potential addition to the graph. Related nodes that may be affected:</div>`;
+        if (targetNode) {
+          const related = nodeData.filter(n => n.parent === targetNodeId || n.id === targetNode.parent);
+          if (related.length) {
+            responseHtml += `<div style="margin-top:4px">${related.slice(0, 4).map(n => makeNodeChip(n.id)).join(' ')}</div>`;
+          }
+        }
+      } else if (detectedType === 'task') {
+        responseHtml += `<div style="margin-top:8px;font-size:11px;color:var(--lt-driftwood)">Task queued for review. Once approved, it will be integrated into the project hierarchy.</div>`;
+      } else if (detectedType === 'improvement') {
+        responseHtml += `<div style="margin-top:8px;font-size:11px;color:var(--lt-driftwood)">Improvement noted. This will be prioritized against existing work items during review.</div>`;
+      }
+
+      addAgentMsg(responseHtml, 'agent', targetNodeId ? [targetNodeId] : []);
+      if (targetNodeId) highlightAgentNodes([targetNodeId]);
+    }, 200);
+
+  } else {
+    // ─── Query Mode ───
+    addAgentMsg(query, 'user');
+
+    // Try API first, fall back to local
+    const tryApiQuery = async () => {
+      const apiResult = await AGENT_CONFIG.submitQuery(query, {
+        nodeCount: nodeData.length,
+        currentView,
+        selectedNode
+      });
+
+      if (apiResult?.html) {
+        addAgentMsg(apiResult.html, 'agent', apiResult.nodes);
+        if (apiResult.nodes?.length) highlightAgentNodes(apiResult.nodes);
+      } else {
+        // Local query engine fallback
+        const response = processAgentQuery(query);
+        addAgentMsg(response.html, 'agent', response.nodes);
+        if (response.nodes?.length) highlightAgentNodes(response.nodes);
+      }
+    };
+
+    setTimeout(() => tryApiQuery(), 150);
+  }
+};
+
+function addAgentMsg(html, role, referencedNodes) {
+  const messages = document.getElementById('agentMessages');
+  const msg = document.createElement('div');
+  msg.className = `agent-msg ${role}`;
+
+  const now = new Date();
+  const ts = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  if (role === 'user') {
+    msg.textContent = html;
+    msg.innerHTML += `<div class="msg-meta">${ts}</div>`;
+  } else {
+    msg.innerHTML = html + `<div class="msg-meta">graph agent · ${ts}</div>`;
+  }
+
+  messages.appendChild(msg);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function makeNodeChip(nodeId) {
+  const nd = nodeData.find(n => n.id === nodeId);
+  if (!nd) return '';
+  const color = LEVEL_COLOR[nd.level] || LT.tidal;
+  return `<span class="node-chip" style="color:${color};background:${color}12" onclick="focusGraphNode('${nodeId}')"><span class="chip-dot" style="background:${color}"></span>${nd.label}</span>`;
+}
+
+window.focusGraphNode = function(nodeId) {
+  if (!graph || !graph.hasNode(nodeId)) return;
+  selectedNode = nodeId;
+  showInfo(nodeId);
+  document.getElementById('info').classList.add('pinned');
+
+  // Center camera on node
+  const attrs = graph.getNodeAttributes(nodeId);
+  sigmaInstance?.getCamera().animate({ x: attrs.x, y: attrs.y, ratio: 0.4 }, { duration: 400 });
+
+  highlightAgentNodes([nodeId]);
+};
+
+function highlightAgentNodes(nodeIds) {
+  agentHighlightedNodes = new Set(nodeIds);
+  sigmaInstance?.refresh();
+
+  // Auto-clear after 6s
+  setTimeout(() => {
+    agentHighlightedNodes.clear();
+    sigmaInstance?.refresh();
+  }, 6000);
+}
+
+// ─── Graph Query Engine ───
+function processAgentQuery(query) {
+  const q = query.toLowerCase();
+
+  // Status summary
+  if (q.includes('status') || q.includes('summary') || q.includes('overview')) {
+    return queryStatusSummary();
+  }
+
+  // Blockers
+  if (q.includes('block') || q.includes('stuck') || q.includes('impediment')) {
+    return queryBlockers();
+  }
+
+  // Ownership
+  if (q.includes('own') || q.includes('who') || q.includes('responsible')) {
+    return queryOwnership();
+  }
+
+  // In progress / doing
+  if (q.includes('progress') || q.includes('doing') || q.includes('active') || q.includes('current')) {
+    return queryInProgress();
+  }
+
+  // Critical path
+  if (q.includes('critical') || q.includes('path') || q.includes('bottleneck')) {
+    return queryCriticalPath();
+  }
+
+  // Dependencies on specific node
+  const depMatch = q.match(/depend(?:s|encies)?\s+(?:on|of|for)\s+(.+)/i);
+  if (depMatch || q.includes('depends') || q.includes('dependencies') || q.includes('api dep')) {
+    const target = depMatch ? depMatch[1].trim() : '';
+    return queryDependencies(target || q);
+  }
+
+  // Search by name
+  if (q.includes('find') || q.includes('show') || q.includes('where') || q.includes('search')) {
+    return querySearch(q);
+  }
+
+  // Node count / stats
+  if (q.includes('count') || q.includes('how many') || q.includes('total') || q.includes('stats')) {
+    return queryStats();
+  }
+
+  // Specific node query
+  const nodeMatch = nodeData.find(n =>
+    q.includes(n.label.toLowerCase()) || q.includes(n.id.toLowerCase())
+  );
+  if (nodeMatch) {
+    return queryNodeDetail(nodeMatch);
+  }
+
+  // Fallback — search
+  return querySearch(q);
+}
+
+function queryStatusSummary() {
+  const levels = {};
+  nodeData.forEach(n => {
+    levels[n.level] = (levels[n.level] || 0) + 1;
+  });
+
+  const wiStatus = {};
+  workItems.forEach(w => {
+    wiStatus[w.status] = (wiStatus[w.status] || 0) + 1;
+  });
+
+  const blockerCount = depEdges.filter(d => d.kind === 'blocks').length;
+
+  let html = `<strong>Project Status — OpenClaw</strong>`;
+  html += `<div class="agent-result"><div class="ar-title">Hierarchy</div>`;
+  Object.entries(levels).forEach(([level, count]) => {
+    html += `<div class="ar-row"><span>${level.replace('_',' ')}</span><span style="font-weight:600">${count}</span></div>`;
+  });
+  html += `</div>`;
+
+  html += `<div class="agent-result"><div class="ar-title">Work Items</div>`;
+  Object.entries(wiStatus).forEach(([status, count]) => {
+    html += `<div class="ar-row"><span>${status.replace('_',' ')}</span><span style="font-weight:600">${count}</span></div>`;
+  });
+  html += `</div>`;
+
+  html += `<div style="margin-top:6px;font-size:11px">${depEdges.length} dependencies · ${blockerCount} hard blockers</div>`;
+
+  return { html, nodes: ['n_root'] };
+}
+
+function queryBlockers() {
+  const blockers = depEdges.filter(d => d.kind === 'blocks');
+  if (!blockers.length) return { html: 'No hard blockers found in the graph.', nodes: [] };
+
+  let html = `<strong>${blockers.length} hard blocker${blockers.length > 1 ? 's' : ''} found:</strong>`;
+  html += `<div class="agent-result"><div class="ar-title">Blocks</div>`;
+  const nodes = [];
+  blockers.forEach(b => {
+    const src = nodeData.find(n => n.id === b.src);
+    const tgt = nodeData.find(n => n.id === b.tgt);
+    html += `<div class="ar-row">${makeNodeChip(b.src)} blocks ${makeNodeChip(b.tgt)}</div>`;
+    nodes.push(b.src, b.tgt);
+  });
+  html += `</div>`;
+  html += `<div style="margin-top:6px;font-size:11px;color:var(--lt-driftwood)">These must be resolved before downstream work can proceed.</div>`;
+
+  return { html, nodes };
+}
+
+function queryOwnership() {
+  const owners = {};
+  nodeData.forEach(n => {
+    if (n.owner) {
+      (owners[n.owner] = owners[n.owner] || []).push(n);
+    }
+  });
+
+  let html = `<strong>Ownership breakdown:</strong>`;
+  const allNodes = [];
+  Object.entries(owners).forEach(([owner, nodes]) => {
+    const features = nodes.filter(n => n.level === 'feature');
+    const tasks = nodes.filter(n => n.level === 'task');
+    html += `<div class="agent-result"><div class="ar-title">${owner}</div>`;
+    html += `<div class="ar-row"><span>Total nodes</span><span style="font-weight:600">${nodes.length}</span></div>`;
+    html += `<div class="ar-row"><span>Features</span><span style="font-weight:600">${features.length}</span></div>`;
+    html += `<div class="ar-row"><span>Tasks</span><span style="font-weight:600">${tasks.length}</span></div>`;
+    if (features.length) {
+      html += `<div style="margin-top:4px">${features.map(n => makeNodeChip(n.id)).join(' ')}</div>`;
+      allNodes.push(...features.map(n => n.id));
+    }
+    html += `</div>`;
+  });
+
+  return { html, nodes: allNodes };
+}
+
+function queryInProgress() {
+  const doing = workItems.filter(w => w.status === 'doing');
+  if (!doing.length) return { html: 'Nothing currently in progress.', nodes: [] };
+
+  let html = `<strong>${doing.length} work items in progress:</strong>`;
+  html += `<div class="agent-result"><div class="ar-title">Doing</div>`;
+  const nodes = [];
+  doing.forEach(w => {
+    html += `<div class="ar-row"><span>${w.title}</span><span style="font-size:9px;color:var(--lt-ash)">${w.who || 'unassigned'}</span></div>`;
+    if (w.node) {
+      html += `<div style="padding:2px 0">${makeNodeChip(w.node)}</div>`;
+      nodes.push(w.node);
+    }
+  });
+  html += `</div>`;
+
+  return { html, nodes };
+}
+
+function queryCriticalPath() {
+  // Find chains of blockers and dependencies
+  const blockTargets = new Set(depEdges.filter(d => d.kind === 'blocks').map(d => d.tgt));
+  const depTargets = new Set(depEdges.filter(d => d.kind === 'depends_on').map(d => d.tgt));
+
+  // Nodes that are both blocking something AND depended on
+  const criticalNodes = [];
+  depEdges.forEach(d => {
+    const srcNode = nodeData.find(n => n.id === d.src);
+    const tgtNode = nodeData.find(n => n.id === d.tgt);
+    if (srcNode && tgtNode) {
+      if (!criticalNodes.find(c => c.id === d.tgt)) criticalNodes.push(tgtNode);
+      if (!criticalNodes.find(c => c.id === d.src)) criticalNodes.push(srcNode);
+    }
+  });
+
+  // Sort by dependency count
+  const depCount = {};
+  depEdges.forEach(d => {
+    depCount[d.src] = (depCount[d.src] || 0) + 1;
+    depCount[d.tgt] = (depCount[d.tgt] || 0) + 1;
+  });
+
+  const sorted = criticalNodes.sort((a, b) => (depCount[b.id] || 0) - (depCount[a.id] || 0));
+
+  let html = `<strong>Critical path — most connected dependency nodes:</strong>`;
+  html += `<div class="agent-result"><div class="ar-title">By dependency count</div>`;
+  sorted.slice(0, 6).forEach(n => {
+    const count = depCount[n.id] || 0;
+    const isBlocker = depEdges.some(d => d.src === n.id && d.kind === 'blocks');
+    html += `<div class="ar-row">${makeNodeChip(n.id)}<span style="font-size:9px">${count} deps${isBlocker ? ' · blocker' : ''}</span></div>`;
+  });
+  html += `</div>`;
+
+  const doingWIs = workItems.filter(w => w.status === 'doing');
+  const activeCritical = sorted.filter(n => doingWIs.some(w => w.node === n.id));
+  if (activeCritical.length) {
+    html += `<div style="margin-top:6px;font-size:11px"><strong>Active on critical path:</strong> ${activeCritical.map(n => makeNodeChip(n.id)).join(' ')}</div>`;
+  }
+
+  return { html, nodes: sorted.slice(0, 6).map(n => n.id) };
+}
+
+function queryDependencies(target) {
+  // Find node matching the target string
+  const tq = target.toLowerCase();
+  const matchNode = nodeData.find(n =>
+    n.label.toLowerCase().includes(tq) || n.id.toLowerCase().includes(tq)
+  );
+
+  if (!matchNode) {
+    // Show all dependencies
+    let html = `<strong>All dependencies (${depEdges.length}):</strong>`;
+    html += `<div class="agent-result"><div class="ar-title">Dependencies</div>`;
+    const nodes = [];
+    depEdges.forEach(d => {
+      html += `<div class="ar-row">${makeNodeChip(d.src)} → ${makeNodeChip(d.tgt)}<span style="font-size:8px;font-family:'JetBrains Mono',monospace;color:var(--lt-ash)">${d.kind}</span></div>`;
+      nodes.push(d.src, d.tgt);
+    });
+    html += `</div>`;
+    return { html, nodes: [...new Set(nodes)] };
+  }
+
+  const incoming = depEdges.filter(d => d.tgt === matchNode.id);
+  const outgoing = depEdges.filter(d => d.src === matchNode.id);
+  const nodes = [matchNode.id];
+
+  let html = `<strong>Dependencies for ${makeNodeChip(matchNode.id)}:</strong>`;
+
+  if (outgoing.length) {
+    html += `<div class="agent-result"><div class="ar-title">Depends on / blocks</div>`;
+    outgoing.forEach(d => {
+      html += `<div class="ar-row">→ ${makeNodeChip(d.tgt)}<span style="font-size:8px;font-family:'JetBrains Mono',monospace;color:var(--lt-ash)">${d.kind}</span></div>`;
+      nodes.push(d.tgt);
+    });
+    html += `</div>`;
+  }
+
+  if (incoming.length) {
+    html += `<div class="agent-result"><div class="ar-title">Depended on by</div>`;
+    incoming.forEach(d => {
+      html += `<div class="ar-row">← ${makeNodeChip(d.src)}<span style="font-size:8px;font-family:'JetBrains Mono',monospace;color:var(--lt-ash)">${d.kind}</span></div>`;
+      nodes.push(d.src);
+    });
+    html += `</div>`;
+  }
+
+  if (!incoming.length && !outgoing.length) {
+    html += `<div style="margin-top:6px;font-size:11px;color:var(--lt-ash)">No dependencies found for this node.</div>`;
+  }
+
+  return { html, nodes: [...new Set(nodes)] };
+}
+
+function querySearch(query) {
+  const terms = query.toLowerCase().replace(/find|show|where|search|is|the|a|an|for/g, '').trim().split(/\s+/).filter(Boolean);
+  if (!terms.length) return { html: 'Try asking about blockers, ownership, status, or a specific node name.', nodes: [] };
+
+  const matches = nodeData.filter(n => {
+    const text = `${n.label} ${n.level} ${n.owner} ${n.fn} ${n.notes || ''}`.toLowerCase();
+    return terms.some(t => text.includes(t));
+  });
+
+  if (!matches.length) {
+    return { html: `No nodes matching "${terms.join(' ')}". Try: blockers, ownership, in progress, or a node name like "Workbench".`, nodes: [] };
+  }
+
+  let html = `<strong>${matches.length} node${matches.length > 1 ? 's' : ''} found:</strong>`;
+  html += `<div class="agent-result"><div class="ar-title">Results</div>`;
+  matches.slice(0, 8).forEach(n => {
+    html += `<div class="ar-row">${makeNodeChip(n.id)}<span style="font-size:9px;color:var(--lt-ash)">${n.level.replace('_',' ')} · ${n.owner}</span></div>`;
+  });
+  if (matches.length > 8) html += `<div style="font-size:9px;color:var(--lt-ash);padding-top:4px">+ ${matches.length - 8} more</div>`;
+  html += `</div>`;
+
+  return { html, nodes: matches.slice(0, 8).map(n => n.id) };
+}
+
+function queryNodeDetail(node) {
+  const wis = workItems.filter(w => w.node === node.id);
+  const deps = depEdges.filter(d => d.src === node.id || d.tgt === node.id);
+  const children = nodeData.filter(n => n.parent === node.id);
+  const nodes = [node.id];
+
+  let html = `<strong>${makeNodeChip(node.id)}</strong>`;
+  html += `<div class="agent-result"><div class="ar-title">Details</div>`;
+  html += `<div class="ar-row"><span>Level</span><span style="font-weight:600">${node.level.replace('_',' ')}</span></div>`;
+  html += `<div class="ar-row"><span>Owner</span><span style="font-weight:600">${node.owner}</span></div>`;
+  html += `<div class="ar-row"><span>Function</span><span style="font-weight:600">${node.fn}</span></div>`;
+  if (node.due) html += `<div class="ar-row"><span>Due</span><span style="font-weight:600">${node.due}</span></div>`;
+  html += `</div>`;
+
+  if (node.notes) {
+    html += `<div style="margin-top:6px;font-size:11px;font-style:italic;color:var(--lt-driftwood)">${node.notes}</div>`;
+  }
+
+  if (children.length) {
+    html += `<div class="agent-result"><div class="ar-title">Children (${children.length})</div>`;
+    children.forEach(c => {
+      html += `<div class="ar-row">${makeNodeChip(c.id)}<span style="font-size:9px;color:var(--lt-ash)">${c.level.replace('_',' ')}</span></div>`;
+      nodes.push(c.id);
+    });
+    html += `</div>`;
+  }
+
+  if (deps.length) {
+    html += `<div class="agent-result"><div class="ar-title">Dependencies</div>`;
+    deps.forEach(d => {
+      const other = d.src === node.id ? d.tgt : d.src;
+      const dir = d.src === node.id ? '→' : '←';
+      html += `<div class="ar-row">${dir} ${makeNodeChip(other)}<span style="font-size:8px;color:var(--lt-ash)">${d.kind}</span></div>`;
+      nodes.push(other);
+    });
+    html += `</div>`;
+  }
+
+  if (wis.length) {
+    html += `<div class="agent-result"><div class="ar-title">Work Items</div>`;
+    wis.forEach(w => {
+      html += `<div class="ar-row"><span>${w.title}</span><span style="font-size:8px;font-family:'JetBrains Mono',monospace;color:var(--lt-ash)">${w.status}</span></div>`;
+    });
+    html += `</div>`;
+  }
+
+  return { html, nodes: [...new Set(nodes)] };
+}
+
+function queryStats() {
+  const levels = {};
+  nodeData.forEach(n => { levels[n.level] = (levels[n.level] || 0) + 1; });
+  const owners = new Set(nodeData.map(n => n.owner).filter(Boolean));
+
+  let html = `<strong>Graph statistics:</strong>`;
+  html += `<div class="agent-result"><div class="ar-title">Counts</div>`;
+  html += `<div class="ar-row"><span>Total nodes</span><span style="font-weight:600">${nodeData.length}</span></div>`;
+  html += `<div class="ar-row"><span>Dependencies</span><span style="font-weight:600">${depEdges.length}</span></div>`;
+  html += `<div class="ar-row"><span>Work items</span><span style="font-weight:600">${workItems.length}</span></div>`;
+  html += `<div class="ar-row"><span>Owners</span><span style="font-weight:600">${owners.size} (${[...owners].join(', ')})</span></div>`;
+  Object.entries(levels).forEach(([l, c]) => {
+    html += `<div class="ar-row"><span>${l.replace('_',' ')}</span><span style="font-weight:600">${c}</span></div>`;
+  });
+  html += `</div>`;
+
+  return { html, nodes: [] };
+}
+
+// Add agent-highlight awareness to node reducer
+const originalNodeReducer = (node, data) => {
+  const res = { ...data };
+  // Agent highlights — pulse ring
+  if (agentHighlightedNodes.size > 0) {
+    if (agentHighlightedNodes.has(node)) {
+      res.highlighted = true;
+      res.zIndex = 10;
+    } else if (!hoveredNode) {
+      // Dim non-highlighted when agent has selections
+      res.color = 'rgba(210,200,185,0.4)';
+    }
+  }
+  if (hoveredNode) {
+    if (node === hoveredNode) {
+      res.highlighted = true;
+      res.zIndex = 10;
+    } else if (!graph.neighbors(hoveredNode).includes(node)) {
+      res.color = 'rgba(210,200,185,0.5)';
+      res.label = null;
+    }
+  }
+  return res;
+};
+
+// Keyboard: toggle agent with /, review queue with Q
+document.addEventListener('keydown', e => {
+  if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'SELECT') return;
+  if (e.key === '/') {
+    e.preventDefault();
+    toggleAgent();
+  }
+  if (e.key === 'q' || e.key === 'Q') {
+    toggleReviewQueue();
+  }
+});
+
 // ─── Boot ───
 initRenderer();
+updateReviewQueueUI();
 
 </script>
 </body>
