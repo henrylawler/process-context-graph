@@ -1173,6 +1173,7 @@
 <div class="surface">
   <div class="grain"><svg><filter id="gl"><feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="4" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#gl)" opacity="0.45"/></svg></div>
   <div id="sigma-main" class="sigma-container"></div>
+  <div id="mondrian-container" style="position:absolute;inset:70px 0 0 0;display:none;overflow:hidden;background:var(--bg-surface);"></div>
 </div>
 
 <div class="hover-tip" id="hoverTip"></div>
@@ -1188,6 +1189,8 @@
     <button class="c-btn" data-v="sync" onclick="setView('sync')">Sync</button>
     <button class="c-btn" data-v="lanes" onclick="setView('lanes')">Lanes</button>
     <button class="c-btn" data-v="deps" onclick="setView('deps')">Deps</button>
+    <button class="c-btn" data-v="intent" onclick="setView('intent')">Intent</button>
+    <button class="c-btn" data-v="mondrian" onclick="setView('mondrian')">Mondrian</button>
   </div>
 
   <div class="toggles">
@@ -1196,10 +1199,11 @@
     <button class="t-btn" id="tLabels" onclick="togLabels()">labels</button>
     <button class="t-btn" id="tShapes" onclick="togShapeMode()">shapes</button>
     <button class="t-btn" id="tTheme" onclick="togTheme()">dark</button>
+    <button class="t-btn" id="tColor" onclick="cycleColorMode()">color: level</button>
   </div>
 
 
-  <div class="keys">1-4 views · H halftone · Z depth · L labels · S shapes · D dark · P palette · R reset · / agent · Q queue</div>
+  <div class="keys">1-6 views · H halftone · Z depth · L labels · S shapes · D dark · P palette · C color mode · R reset · / agent · Q queue</div>
 
   <div class="edge-legend">
     <div class="elg"><div class="elg-line" style="border-color:#C9B896"></div>hierarchy</div>
@@ -1208,14 +1212,7 @@
     <div class="elg"><div class="elg-line" style="border-color:#5E8B7E"></div>sync_flow</div>
   </div>
 
-  <div class="legend">
-    <div class="lg"><div class="lg-d" style="background:#5A7D8A"></div>Project</div>
-    <div class="lg"><div class="lg-d" style="background:#6B7F5E"></div>Board</div>
-    <div class="lg"><div class="lg-d" style="background:#B85C38"></div>Feature</div>
-    <div class="lg"><div class="lg-d" style="background:#D4A96A"></div>Task</div>
-    <div class="lg"><div class="lg-d" style="background:#C4A77D"></div>Subtask</div>
-    <div class="lg"><div class="lg-d" style="background:#9A9590"></div>Action</div>
-  </div>
+  <div class="legend" id="colorLegend"></div>
 
   <div class="info" id="info"></div>
 </div>
@@ -1396,6 +1393,7 @@ const PALETTES = {
 let currentPalette = localStorage.getItem('pcg_palette') || 'terrain';
 let isDarkTheme = localStorage.getItem('pcg_theme') === 'dark';
 let shapeMode = 'process'; // 'process' (circles) or 'systems' (mixed shapes)
+let colorMode = localStorage.getItem('pcg_colorMode') || 'level'; // 'level' | 'owner' | 'function' | 'intent'
 
 function getPalette() { return PALETTES[currentPalette]; }
 
@@ -1404,6 +1402,64 @@ function getLevelColor(level) {
   const map = { project: p.l1, board_owner: p.l2, feature: p.l3, task: p.l4,
     subtask: p.l5, action: p.l6, sync: p.accent1, lane_header: p.driftwood, work_item: p.l1 };
   return map[level] || p.l1;
+}
+
+function getNodeColor(node) {
+  if (colorMode === 'level') return getLevelColor(node.level);
+  const p = getPalette();
+  const slots = [p.l1, p.l2, p.l3, p.l4, p.l5, p.l6, p.accent1, p.accent2, p.accent3];
+  if (colorMode === 'owner') {
+    const owners = [...new Set(nodeData.map(n => n.owner).filter(Boolean))];
+    return slots[owners.indexOf(node.owner) % slots.length] || p.l1;
+  }
+  if (colorMode === 'function') {
+    const fns = [...new Set(nodeData.map(n => n.fn).filter(Boolean))];
+    return slots[fns.indexOf(node.fn) % slots.length] || p.l1;
+  }
+  if (colorMode === 'intent') {
+    return getIntentColor(node.intent);
+  }
+  return getLevelColor(node.level);
+}
+
+function getIntentColor(intent) {
+  if (!intent) return getPalette().ash;
+  const p = getPalette();
+  const intents = [...new Set(nodeData.map(n => n.intent).filter(Boolean))];
+  const slots = [p.l1, p.l2, p.l3, p.l4, p.l5, p.l6, p.accent1, p.accent2, p.accent3];
+  return slots[intents.indexOf(intent) % slots.length] || p.l1;
+}
+
+function updateLegend() {
+  const el = document.getElementById('colorLegend');
+  if (!el) return;
+  const p = getPalette();
+  const slots = [p.l1, p.l2, p.l3, p.l4, p.l5, p.l6, p.accent1, p.accent2, p.accent3];
+  let entries = [];
+
+  if (currentView === 'intent') {
+    const intents = [...new Set(nodeData.map(n => n.intent).filter(Boolean))];
+    entries = intents.map((intent, i) => ({ color: slots[i % slots.length], label: intent }));
+  } else if (colorMode === 'level') {
+    entries = [
+      { color: p.l1, label: 'Project' }, { color: p.l2, label: 'Board' },
+      { color: p.l3, label: 'Feature' }, { color: p.l4, label: 'Task' },
+      { color: p.l5, label: 'Subtask' }, { color: p.l6, label: 'Action' }
+    ];
+  } else if (colorMode === 'owner') {
+    const owners = [...new Set(nodeData.map(n => n.owner).filter(Boolean))];
+    entries = owners.map((o, i) => ({ color: slots[i % slots.length], label: o }));
+  } else if (colorMode === 'function') {
+    const fns = [...new Set(nodeData.map(n => n.fn).filter(Boolean))];
+    entries = fns.map((f, i) => ({ color: slots[i % slots.length], label: f }));
+  } else if (colorMode === 'intent') {
+    const intents = [...new Set(nodeData.map(n => n.intent).filter(Boolean))];
+    entries = intents.map((it, i) => ({ color: slots[i % slots.length], label: it }));
+  }
+
+  el.innerHTML = entries.map(e =>
+    `<div class="lg"><div class="lg-d" style="background:${e.color}"></div>${e.label}</div>`
+  ).join('');
 }
 
 // ─── Shape Library ───
@@ -1623,65 +1679,65 @@ function drawLeaderLineSVG() {
 // ─── Placeholder Data ───
 const PLACEHOLDER_NODES = [
   { id: 'ph_root', label: 'Project Alpha', level: 'project', owner: 'Lead', fn: 'Platform', parent: null,
-    notes: 'Root project container. Demonstrates full 6-level hierarchy schema.' },
+    intent: null, notes: 'Root project container. Demonstrates full 6-level hierarchy schema.' },
   { id: 'ph_b1', label: 'Frontend', level: 'board_owner', owner: 'Alice', fn: 'UI', parent: 'ph_root',
-    notes: 'User-facing application surfaces and components.' },
+    intent: 'User Experience', notes: 'User-facing application surfaces and components.' },
   { id: 'ph_b2', label: 'Backend', level: 'board_owner', owner: 'Bob', fn: 'API', parent: 'ph_root',
-    notes: 'Server-side services, APIs, and data processing.' },
+    intent: 'Data Integrity', notes: 'Server-side services, APIs, and data processing.' },
   { id: 'ph_b3', label: 'Data Ops', level: 'board_owner', owner: 'Carol', fn: 'Data', parent: 'ph_root',
-    notes: 'Data pipeline, ETL, and analytics infrastructure.' },
+    intent: 'Data Integrity', notes: 'Data pipeline, ETL, and analytics infrastructure.' },
   { id: 'ph_f1', label: 'Dashboard', level: 'feature', owner: 'Alice', fn: 'UI', parent: 'ph_b1',
-    notes: 'Main user dashboard with real-time widgets and charts.' },
+    intent: 'User Experience', notes: 'Main user dashboard with real-time widgets and charts.' },
   { id: 'ph_f2', label: 'Auth System', level: 'feature', owner: 'Alice', fn: 'Security', parent: 'ph_b1',
-    notes: 'OAuth2 authentication with role-based access control.' },
+    intent: 'Security', notes: 'OAuth2 authentication with role-based access control.' },
   { id: 'ph_f3', label: 'REST API', level: 'feature', owner: 'Bob', fn: 'API', parent: 'ph_b2',
-    notes: 'RESTful endpoints for all domain entities.' },
+    intent: 'Integration', notes: 'RESTful endpoints for all domain entities.' },
   { id: 'ph_f4', label: 'Database', level: 'feature', owner: 'Bob', fn: 'Data', parent: 'ph_b2',
-    notes: 'PostgreSQL schema with migrations and indices.' },
+    intent: 'Data Integrity', notes: 'PostgreSQL schema with migrations and indices.' },
   { id: 'ph_f5', label: 'ETL Pipeline', level: 'feature', owner: 'Carol', fn: 'Data', parent: 'ph_b3',
-    notes: 'Extract-transform-load pipeline for data warehousing.' },
+    intent: 'Data Integrity', notes: 'Extract-transform-load pipeline for data warehousing.' },
   { id: 'ph_t1', label: 'Widget Grid', level: 'task', owner: 'Alice', fn: 'UI', parent: 'ph_f1',
-    notes: 'Responsive grid layout for dashboard widgets.' },
+    intent: 'User Experience', notes: 'Responsive grid layout for dashboard widgets.' },
   { id: 'ph_t2', label: 'Chart Engine', level: 'task', owner: 'Alice', fn: 'Viz', parent: 'ph_f1',
-    notes: 'D3-based charting library integration.' },
+    intent: 'Observability', notes: 'D3-based charting library integration.' },
   { id: 'ph_t3', label: 'Login Flow', level: 'task', owner: 'Alice', fn: 'Security', parent: 'ph_f2',
-    notes: 'OAuth2 login with token refresh and session management.' },
+    intent: 'Security', notes: 'OAuth2 login with token refresh and session management.' },
   { id: 'ph_t4', label: 'CRUD Routes', level: 'task', owner: 'Bob', fn: 'API', parent: 'ph_f3',
-    notes: 'Standard CRUD operations with validation and pagination.' },
+    intent: 'Integration', notes: 'Standard CRUD operations with validation and pagination.' },
   { id: 'ph_t5', label: 'WebSocket', level: 'task', owner: 'Bob', fn: 'Realtime', parent: 'ph_f3',
-    notes: 'Real-time event broadcasting for live updates.' },
+    intent: 'Performance', notes: 'Real-time event broadcasting for live updates.' },
   { id: 'ph_t6', label: 'Migrations', level: 'task', owner: 'Bob', fn: 'DB', parent: 'ph_f4',
-    notes: 'Schema versioning and migration tooling.' },
+    intent: 'Data Integrity', notes: 'Schema versioning and migration tooling.' },
   { id: 'ph_t7', label: 'Ingestion', level: 'task', owner: 'Carol', fn: 'Data', parent: 'ph_f5',
-    notes: 'Source data extraction and normalization.' },
+    intent: 'Data Integrity', notes: 'Source data extraction and normalization.' },
   { id: 'ph_t8', label: 'Transform', level: 'task', owner: 'Carol', fn: 'Data', parent: 'ph_f5',
-    notes: 'Data transformation rules and validation.' },
+    intent: 'Data Integrity', notes: 'Data transformation rules and validation.' },
   { id: 'ph_s1', label: 'Breakpoints', level: 'subtask', owner: 'Alice', fn: 'UI', parent: 'ph_t1',
-    notes: 'Responsive breakpoint configuration.' },
+    intent: 'User Experience', notes: 'Responsive breakpoint configuration.' },
   { id: 'ph_s2', label: 'Drag Resize', level: 'subtask', owner: 'Alice', fn: 'UI', parent: 'ph_t1',
-    notes: 'Widget drag-to-resize interaction.' },
+    intent: 'User Experience', notes: 'Widget drag-to-resize interaction.' },
   { id: 'ph_s3', label: 'Bar Charts', level: 'subtask', owner: 'Alice', fn: 'Viz', parent: 'ph_t2',
-    notes: 'Horizontal and vertical bar chart components.' },
+    intent: 'Observability', notes: 'Horizontal and vertical bar chart components.' },
   { id: 'ph_s4', label: 'Token Refresh', level: 'subtask', owner: 'Alice', fn: 'Security', parent: 'ph_t3',
-    notes: 'Silent token refresh before expiry.' },
+    intent: 'Security', notes: 'Silent token refresh before expiry.' },
   { id: 'ph_s5', label: 'Validation', level: 'subtask', owner: 'Bob', fn: 'API', parent: 'ph_t4',
-    notes: 'Request body validation with error responses.' },
+    intent: 'Data Integrity', notes: 'Request body validation with error responses.' },
   { id: 'ph_s6', label: 'Pagination', level: 'subtask', owner: 'Bob', fn: 'API', parent: 'ph_t4',
-    notes: 'Cursor-based pagination for list endpoints.' },
+    intent: 'Performance', notes: 'Cursor-based pagination for list endpoints.' },
   { id: 'ph_s7', label: 'CSV Parser', level: 'subtask', owner: 'Carol', fn: 'Data', parent: 'ph_t7',
-    notes: 'Stream-based CSV parsing with error recovery.' },
+    intent: 'Integration', notes: 'Stream-based CSV parsing with error recovery.' },
   { id: 'ph_s8', label: 'Rules Engine', level: 'subtask', owner: 'Carol', fn: 'Data', parent: 'ph_t8',
-    notes: 'Configurable transform rule definitions.' },
+    intent: 'Data Integrity', notes: 'Configurable transform rule definitions.' },
   { id: 'ph_a1', label: 'Build grid', level: 'action', owner: 'Alice', fn: 'UI', parent: 'ph_s1',
-    notes: 'Implement CSS grid with breakpoint observer.' },
+    intent: 'User Experience', notes: 'Implement CSS grid with breakpoint observer.' },
   { id: 'ph_a2', label: 'Test resize', level: 'action', owner: 'Alice', fn: 'QA', parent: 'ph_s2',
-    notes: 'E2E tests for drag-to-resize across viewports.' },
+    intent: 'User Experience', notes: 'E2E tests for drag-to-resize across viewports.' },
   { id: 'ph_a3', label: 'Schema v1', level: 'action', owner: 'Bob', fn: 'DB', parent: 'ph_s5',
-    notes: 'Write JSON schema for request validation.' },
+    intent: 'Data Integrity', notes: 'Write JSON schema for request validation.' },
   { id: 'ph_a4', label: 'Parse spec', level: 'action', owner: 'Carol', fn: 'Docs', parent: 'ph_s7',
-    notes: 'Document CSV column mapping specification.' },
+    intent: 'Integration', notes: 'Document CSV column mapping specification.' },
   { id: 'ph_a5', label: 'Unit tests', level: 'action', owner: 'Bob', fn: 'QA', parent: 'ph_s6',
-    notes: 'Pagination cursor encoding/decoding tests.' },
+    intent: 'Data Integrity', notes: 'Pagination cursor encoding/decoding tests.' },
 ];
 
 const PLACEHOLDER_DEPS = [
@@ -1854,6 +1910,240 @@ function depsLayout() {
   return positions;
 }
 
+function intentLayout() {
+  const positions = {};
+  const intents = [...new Set(nodeData.map(n => n.intent).filter(Boolean))];
+  const sectorAngle = (Math.PI * 2) / intents.length;
+
+  intents.forEach((intent, si) => {
+    const members = nodeData.filter(n => n.intent === intent);
+    const centerAngle = sectorAngle * si - Math.PI / 2;
+    const centerR = 5;
+    const cx = Math.cos(centerAngle) * centerR;
+    const cy = Math.sin(centerAngle) * centerR;
+
+    members.forEach((n, ni) => {
+      const spread = Math.min(2.5, members.length * 0.35);
+      const localAngle = (Math.PI * 2 / members.length) * ni;
+      const localR = 0.5 + (ni / members.length) * spread;
+      positions[n.id] = {
+        x: cx + Math.cos(localAngle) * localR,
+        y: cy + Math.sin(localAngle) * localR,
+        z: 0.6 + Math.random() * 0.6,
+        intent
+      };
+    });
+  });
+
+  // Root at center
+  const root = nodeData.find(n => !n.parent);
+  if (root && !positions[root.id]) {
+    positions[root.id] = { x: 0, y: 0, z: 1, intent: null };
+  }
+  return { positions, intents };
+}
+
+// ─── Mondrian Treemap ───
+function mondrianTreemap(container, width, height) {
+  const canvas = document.createElement('canvas');
+  canvas.width = width * 2; canvas.height = height * 2;
+  canvas.style.width = width + 'px'; canvas.style.height = height + 'px';
+  container.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+  ctx.scale(2, 2);
+  const allRects = [];
+  const isDark = document.body.classList.contains('dark');
+  const levelNum = { project: 1, board_owner: 2, feature: 3, task: 4, subtask: 5, action: 6 };
+
+  // Count leaf descendants for weight
+  function countLeaves(id) {
+    const children = nodeData.filter(n => n.parent === id);
+    if (children.length === 0) return 1;
+    return children.reduce((sum, c) => sum + countLeaves(c.id), 0);
+  }
+
+  // Squarified row layout
+  function squarify(items, x, y, w, h) {
+    if (items.length === 0 || w <= 0 || h <= 0) return [];
+    const rects = [];
+    const total = items.reduce((s, n) => s + n.weight, 0);
+    if (total <= 0) return [];
+    let cx = x, cy = y;
+    let remW = w, remH = h;
+    let remaining = [...items];
+
+    while (remaining.length > 0) {
+      const isWide = remW >= remH;
+      const shortSide = isWide ? remH : remW;
+      if (shortSide <= 0) break;
+      const remTotal = remaining.reduce((s, n) => s + n.weight, 0);
+
+      // Build best row
+      let row = [remaining[0]];
+      let rowSum = remaining[0].weight;
+      remaining = remaining.slice(1);
+
+      function worstRatio(rw, sum, side) {
+        let worst = 0;
+        rw.forEach(n => {
+          const area = (n.weight / remTotal) * remW * remH;
+          const rowArea = (sum / remTotal) * remW * remH;
+          const rowLen = rowArea / side;
+          const nodeLen = area / rowLen;
+          const ratio = Math.max(rowLen / nodeLen, nodeLen / rowLen);
+          worst = Math.max(worst, ratio);
+        });
+        return worst;
+      }
+
+      while (remaining.length > 0) {
+        const oldWorst = worstRatio(row, rowSum, shortSide);
+        const newRow = [...row, remaining[0]];
+        const newSum = rowSum + remaining[0].weight;
+        const newWorst = worstRatio(newRow, newSum, shortSide);
+        if (newWorst > oldWorst) break;
+        row.push(remaining[0]);
+        rowSum += remaining[0].weight;
+        remaining = remaining.slice(1);
+      }
+
+      // Lay out the row
+      const rowFrac = rowSum / remTotal;
+      const rowDim = isWide ? remW * rowFrac : remH * rowFrac;
+      let offset = 0;
+      row.forEach(n => {
+        const frac = n.weight / rowSum;
+        const rw = isWide ? rowDim : remW;
+        const rh = isWide ? remH : rowDim;
+        const nw = isWide ? rowDim : remW * frac;
+        const nh = isWide ? remH * frac : rowDim;
+        const rx = isWide ? cx : cx + offset;
+        const ry = isWide ? cy + offset : cy;
+        rects.push({ ...n, rx, ry, rw: nw, rh: nh });
+        offset += isWide ? remH * frac : remW * frac;
+      });
+
+      if (isWide) { cx += rowDim; remW -= rowDim; }
+      else { cy += rowDim; remH -= rowDim; }
+    }
+    return rects;
+  }
+
+  // Recursive treemap: layout children of parentId in (x,y,w,h)
+  function layoutNode(parentId, x, y, w, h, depth) {
+    const children = nodeData.filter(n => n.parent === parentId);
+    if (children.length === 0) return;
+
+    const items = children.map(n => ({
+      id: n.id, label: n.label, level: n.level, owner: n.owner, fn: n.fn,
+      intent: n.intent, notes: n.notes, node: n,
+      weight: countLeaves(n.id)
+    })).sort((a, b) => b.weight - a.weight);
+
+    const padding = Math.max(2, 4 - depth);
+    const rects = squarify(items, x + padding, y + padding, w - padding * 2, h - padding * 2);
+
+    rects.forEach(r => {
+      allRects.push({ ...r, depth });
+      // Recurse into children
+      const grandchildren = nodeData.filter(n => n.parent === r.id);
+      if (grandchildren.length > 0 && r.rw > 30 && r.rh > 30) {
+        // Reserve header space for label
+        const headerH = r.rh > 50 ? 22 : 0;
+        layoutNode(r.id, r.rx, r.ry + headerH, r.rw, r.rh - headerH, depth + 1);
+      }
+    });
+  }
+
+  // Start from root
+  const root = nodeData.find(n => !n.parent);
+  if (!root) return;
+
+  // Add root rect
+  allRects.push({
+    id: root.id, label: root.label, level: root.level, owner: root.owner,
+    fn: root.fn, intent: root.intent, notes: root.notes, node: root,
+    weight: countLeaves(root.id), rx: 4, ry: 4, rw: width - 8, rh: height - 8, depth: 0
+  });
+
+  layoutNode(root.id, 4, 4, width - 8, height - 8, 1);
+
+  // Draw back-to-front (deepest first for overlapping, but we want parent bg then child on top)
+  // Sort by depth ascending so parents draw first
+  allRects.sort((a, b) => a.depth - b.depth);
+
+  const gap = 1;
+  allRects.forEach(r => {
+    const color = getNodeColor(r.node);
+
+    // Fill with slightly adjusted opacity for depth
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 1 - (r.depth * 0.05);
+    ctx.fillRect(r.rx + gap, r.ry + gap, r.rw - gap * 2, r.rh - gap * 2);
+    ctx.globalAlpha = 1;
+
+    // Border
+    ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)';
+    ctx.lineWidth = Math.max(0.5, 2 - r.depth * 0.3);
+    ctx.strokeRect(r.rx + gap, r.ry + gap, r.rw - gap * 2, r.rh - gap * 2);
+
+    // Label if rect is large enough
+    if (r.rw > 50 && r.rh > 24) {
+      const fontSize = Math.min(14, Math.max(8, r.rw / 10));
+      ctx.fillStyle = isDark ? '#fff' : (r.depth === 0 ? '#fff' : '#fff');
+      ctx.font = `600 ${fontSize}px 'Playfair Display', serif`;
+      ctx.textBaseline = 'top';
+      // Shadow for readability
+      ctx.shadowColor = 'rgba(0,0,0,0.5)';
+      ctx.shadowBlur = 3;
+      ctx.fillText(r.label, r.rx + 6, r.ry + 5, r.rw - 12);
+      ctx.shadowBlur = 0;
+
+      // Level subtitle
+      if (r.rh > 40 && r.rw > 70) {
+        ctx.font = `500 ${Math.min(8, fontSize * 0.65)}px 'JetBrains Mono', monospace`;
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        ctx.fillText(`L${levelNum[r.level] || '?'} · ${(r.level || '').replace('_', ' ').toUpperCase()}`, r.rx + 6, r.ry + 5 + fontSize + 2, r.rw - 12);
+      }
+    }
+  });
+
+  // Store rects for click detection (reverse so topmost children hit first)
+  const clickRects = [...allRects].sort((a, b) => b.depth - a.depth);
+  canvas.style.cursor = 'pointer';
+  canvas.addEventListener('click', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const lx = e.clientX - rect.left;
+    const ly = e.clientY - rect.top;
+    const hit = clickRects.find(r => lx >= r.rx && lx <= r.rx + r.rw && ly >= r.ry && ly <= r.ry + r.rh);
+    if (hit) {
+      selectedNode = hit.id;
+      showMondrianInfo(hit);
+    }
+  });
+}
+
+function showMondrianInfo(rect) {
+  const nd = nodeData.find(n => n.id === rect.id);
+  if (!nd) return;
+  const el = document.getElementById('info');
+  const color = getNodeColor(nd);
+  let h = `<div class="info-head"><h3>${nd.label}</h3><span class="lvl" style="background:${color}">${nd.level.replace('_',' ').toUpperCase()}</span></div>`;
+  h += `<div class="info-body">`;
+  h += `<div class="ir"><span class="ir-k">id</span><span class="ir-v">${nd.id}</span></div>`;
+  h += `<div class="ir"><span class="ir-k">owner</span><span class="ir-v">${nd.owner || '—'}</span></div>`;
+  h += `<div class="ir"><span class="ir-k">function</span><span class="ir-v">${nd.fn || '—'}</span></div>`;
+  if (nd.intent) h += `<div class="ir"><span class="ir-k">intent</span><span class="ir-v">${nd.intent}</span></div>`;
+  h += `<div class="ir"><span class="ir-k">depth</span><span class="ir-v">${nd.level}</span></div>`;
+  if (nd.notes) {
+    h += `<div class="isec">Notes</div>`;
+    h += `<div style="font-size:10px;color:var(--text-secondary);line-height:1.4;padding:4px 0">${nd.notes}</div>`;
+  }
+  h += `</div>`;
+  el.innerHTML = h;
+  el.classList.add('show');
+}
+
 // ─── Build Graph ───
 function buildGraph() {
   const g = new Graph();
@@ -1866,8 +2156,8 @@ function buildGraph() {
       const sz = LEVEL_SIZE[n.level] * (depthOn ? p.z : 1);
       g.addNode(n.id, {
         x: p.x, y: p.y, size: sz,
-        color: LEVEL_COLOR[n.level],
-        label: n.label, level: n.level, owner: n.owner, fn: n.fn, due: n.due, notes: n.notes,
+        color: getNodeColor(n),
+        label: n.label, level: n.level, owner: n.owner, fn: n.fn, due: n.due, notes: n.notes, intent: n.intent,
         z: p.z, type: 'circle'
       });
     });
@@ -1953,11 +2243,46 @@ function buildGraph() {
       if (!p) return;
       g.addNode(id, {
         x: p.x, y: p.y, size: 22 * (depthOn ? p.z : 1),
-        color: LEVEL_COLOR[n.level],
-        label: n.label, level: n.level, owner: n.owner, fn: n.fn,
+        color: getNodeColor(n),
+        label: n.label, level: n.level, owner: n.owner, fn: n.fn, intent: n.intent,
         z: p.z, type: 'circle'
       });
     });
+    depEdges.forEach(d => {
+      if (g.hasNode(d.src) && g.hasNode(d.tgt)) {
+        g.addEdge(d.src, d.tgt, {
+          size: EDGE_STYLES[d.kind].size,
+          color: EDGE_STYLES[d.kind].color,
+          edgeKind: d.kind,
+          type: 'line', label: d.kind
+        });
+      }
+    });
+
+  } else if (currentView === 'intent') {
+    const { positions, intents } = intentLayout();
+    nodeData.forEach(n => {
+      const p = positions[n.id];
+      if (!p) return;
+      const sz = LEVEL_SIZE[n.level] * (depthOn ? p.z : 1);
+      g.addNode(n.id, {
+        x: p.x, y: p.y, size: sz,
+        color: getIntentColor(n.intent),
+        label: n.label, level: n.level, owner: n.owner, fn: n.fn,
+        intent: n.intent, notes: n.notes,
+        z: p.z, type: 'circle'
+      });
+    });
+    // Hierarchy edges (lighter)
+    nodeData.forEach(n => {
+      if (n.parent && g.hasNode(n.parent) && g.hasNode(n.id)) {
+        g.addEdge(n.parent, n.id, {
+          size: 0.8, color: 'rgba(201,184,150,0.15)',
+          edgeKind: 'hierarchy', type: 'line'
+        });
+      }
+    });
+    // Dependency edges
     depEdges.forEach(d => {
       if (g.hasNode(d.src) && g.hasNode(d.tgt)) {
         g.addEdge(d.src, d.tgt, {
@@ -2351,6 +2676,7 @@ function showInfo(nodeId) {
     h += `<div class="ir"><span class="ir-k">id</span><span class="ir-v">${nodeId}</span></div>`;
     if (attrs.owner) h += `<div class="ir"><span class="ir-k">owner</span><span class="ir-v">${attrs.owner}</span></div>`;
     if (attrs.fn) h += `<div class="ir"><span class="ir-k">function</span><span class="ir-v">${attrs.fn}</span></div>`;
+    if (nd?.intent) h += `<div class="ir"><span class="ir-k">intent</span><span class="ir-v">${nd.intent}</span></div>`;
     if (attrs.due) h += `<div class="ir"><span class="ir-k">due</span><span class="ir-v">${attrs.due}</span></div>`;
     if (attrs.level) h += `<div class="ir"><span class="ir-k">depth</span><span class="ir-v">${attrs.level}</span></div>`;
 
@@ -2478,7 +2804,40 @@ window.setView = function(v) {
   hoveredNode = null;
   clearAllLeaderLines();
   document.getElementById('info').classList.remove('show');
-  initRenderer();
+
+  const sigmaEl = document.getElementById('sigma-main');
+  const mondrianEl = document.getElementById('mondrian-container');
+
+  if (v === 'mondrian') {
+    sigmaEl.style.display = 'none';
+    mondrianEl.style.display = 'block';
+    mondrianEl.innerHTML = '';
+    if (sigmaInstance) { sigmaInstance.kill(); sigmaInstance = null; }
+    mondrianTreemap(mondrianEl, mondrianEl.clientWidth, mondrianEl.clientHeight);
+    updateLegend();
+  } else {
+    sigmaEl.style.display = 'block';
+    mondrianEl.style.display = 'none';
+    mondrianEl.innerHTML = '';
+    initRenderer();
+  }
+};
+
+window.cycleColorMode = function() {
+  const modes = ['level', 'owner', 'function', 'intent'];
+  const idx = modes.indexOf(colorMode);
+  colorMode = modes[(idx + 1) % modes.length];
+  localStorage.setItem('pcg_colorMode', colorMode);
+  document.getElementById('tColor').textContent = 'color: ' + colorMode;
+  document.getElementById('tColor').classList.toggle('on', colorMode !== 'level');
+  updateLegend();
+  if (currentView === 'mondrian') {
+    const mondrianEl = document.getElementById('mondrian-container');
+    mondrianEl.innerHTML = '';
+    mondrianTreemap(mondrianEl, mondrianEl.clientWidth, mondrianEl.clientHeight);
+  } else {
+    initRenderer();
+  }
 };
 
 window.togHalf = function() {
@@ -2506,8 +2865,15 @@ window.setPalette = function(pal) {
   document.body.setAttribute('data-palette', pal);
   document.querySelectorAll('.palette-swatch').forEach(s => s.classList.toggle('active', s.dataset.pal === pal));
   rebuildLevelColors();
+  updateLegend();
   clearAllLeaderLines();
-  initRenderer();
+  if (currentView === 'mondrian') {
+    const mondrianEl = document.getElementById('mondrian-container');
+    mondrianEl.innerHTML = '';
+    mondrianTreemap(mondrianEl, mondrianEl.clientWidth, mondrianEl.clientHeight);
+  } else {
+    initRenderer();
+  }
 };
 
 window.togTheme = function() {
@@ -2548,12 +2914,15 @@ document.addEventListener('keydown', e => {
   if (e.key === '2') setView('sync');
   if (e.key === '3') setView('lanes');
   if (e.key === '4') setView('deps');
+  if (e.key === '5') setView('intent');
+  if (e.key === '6') setView('mondrian');
   if (e.key === 'h' || e.key === 'H') togHalf();
   if (e.key === 'z' || e.key === 'Z') togDepth();
   if (e.key === 'l' || e.key === 'L') togLabels();
   if (e.key === 's' || e.key === 'S') togShapeMode();
   if (e.key === 'd' || e.key === 'D') togTheme();
   if (e.key === 'p' || e.key === 'P') cyclePalette();
+  if (e.key === 'c' || e.key === 'C') cycleColorMode();
   if (e.key === 'r' || e.key === 'R') {
     sigmaInstance?.getCamera().animatedReset({ duration: 300 });
   }
@@ -3410,6 +3779,10 @@ if (isDarkTheme) {
 
 // Init data + colors
 rebuildLevelColors();
+updateLegend();
+// Init color mode button
+document.getElementById('tColor').textContent = 'color: ' + colorMode;
+if (colorMode !== 'level') document.getElementById('tColor').classList.add('on');
 initRenderer();
 updateReviewQueueUI();
 
