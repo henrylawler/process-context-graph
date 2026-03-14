@@ -425,21 +425,21 @@ const LEVEL_COLOR = {
 };
 
 const LEVEL_SIZE = {
-  project: 26,
-  board_owner: 19,
-  feature: 15,
-  task: 11,
-  subtask: 8,
-  action: 5,
-  sync: 18,
-  lane_header: 10,
-  work_item: 7
+  project: 42,
+  board_owner: 30,
+  feature: 22,
+  task: 16,
+  subtask: 11,
+  action: 7,
+  sync: 28,
+  lane_header: 14,
+  work_item: 10
 };
 
 const LEVEL_SHADOW = {
-  project: 5, board_owner: 4, feature: 3.5,
-  task: 3, subtask: 2.5, action: 1.5,
-  sync: 4, lane_header: 2, work_item: 2
+  project: 8, board_owner: 6, feature: 5,
+  task: 4, subtask: 3, action: 2,
+  sync: 6, lane_header: 3, work_item: 2.5
 };
 
 // ─── Domain Data — 6 hierarchy levels ───
@@ -585,8 +585,8 @@ function hierarchyLayout() {
   });
 
   const levelY = {
-    project: 0, board_owner: -2.5, feature: -5,
-    task: -7.5, subtask: -10, action: -12
+    project: 0, board_owner: -3, feature: -6,
+    task: -9, subtask: -12, action: -14.5
   };
 
   function lay(id, xc, spread) {
@@ -598,9 +598,9 @@ function hierarchyLayout() {
     const ch = childMap[id] || [];
     const sp = spread / Math.max(ch.length, 1);
     const sx = xc - (ch.length - 1) * sp / 2;
-    ch.forEach((c, i) => lay(c.id, sx + i * sp, sp * 0.8));
+    ch.forEach((c, i) => lay(c.id, sx + i * sp, sp * 0.75));
   }
-  lay('n_root', 0, 6);
+  lay('n_root', 0, 10);
   return positions;
 }
 
@@ -700,7 +700,7 @@ function buildGraph() {
     syncNodes.forEach(sn => {
       const p = positions[sn.id];
       g.addNode(sn.id, {
-        x: p.x, y: p.y, size: 18 * (depthOn ? p.z : 1),
+        x: p.x, y: p.y, size: 28 * (depthOn ? p.z : 1),
         color: syncColors[sn.id] || LT.tidal,
         label: sn.id, level: 'sync', z: p.z, type: 'circle'
       });
@@ -750,7 +750,7 @@ function buildGraph() {
       const p = pos[id];
       if (!p) return;
       g.addNode(id, {
-        x: p.x, y: p.y, size: 14 * (depthOn ? p.z : 1),
+        x: p.x, y: p.y, size: 22 * (depthOn ? p.z : 1),
         color: LEVEL_COLOR[n.level],
         label: n.label, level: n.level, owner: n.owner, fn: n.fn,
         z: p.z, type: 'circle'
@@ -1007,12 +1007,12 @@ function sigmaSettings() {
       ctx.stroke();
 
       // Level tag inside (for larger nodes)
-      if (size > 10) {
-        ctx.font = `600 ${Math.max(5, size * 0.38)}px "JetBrains Mono", monospace`;
+      if (size > 8) {
+        ctx.font = `600 ${Math.max(5, size * 0.35)}px "JetBrains Mono", monospace`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillStyle = 'rgba(255,255,255,0.75)';
-        const tag = (level || '').slice(0, 4).toUpperCase();
+        ctx.fillStyle = 'rgba(255,255,255,0.8)';
+        const tag = (level || '').replace('_', ' ').slice(0, 6).toUpperCase();
         ctx.fillText(tag, x, y + 0.5);
       }
     }
